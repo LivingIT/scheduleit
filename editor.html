@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schema-editor</title>
+<style>
+  :root{ --bg:#0e0f11; --card:#1a1c1f; --card2:#212429; --line:#2c2f34;
+    --accent:#2f6bff; --txt:#f2f3f5; --txt2:#9aa0a8; --ok:#3ecf8e; --err:#ff6b6b; }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f4f4f2; --card:#fff; --card2:#fff; --line:#e4e4e0; --accent:#1f5fff;
+      --txt:#16181b; --txt2:#6b7078; } }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; line-height:1.4;}
+  .wrap{max-width:820px; margin:0 auto; padding:24px 18px 80px;}
+  h1{font-size:22px; margin:0 0 4px;}
+  .lead{color:var(--txt2); font-size:14px; margin:0 0 20px;}
+  .bar{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;}
+  button, .filebtn{font-size:14px; font-weight:600; border-radius:12px; border:0.5px solid var(--line);
+    background:var(--card2); color:var(--txt); padding:9px 14px; cursor:pointer;}
+  button.accent{background:var(--accent); color:#fff; border-color:var(--accent);}
+  button.ghost{background:none; color:var(--txt2); font-weight:500;}
+  button.mini{padding:4px 9px; font-size:13px; border-radius:9px;}
+  .filebtn{display:inline-block;} .filebtn input{display:none;}
+  .day{background:var(--card); border:0.5px solid var(--line); border-radius:16px; padding:14px 16px; margin-bottom:16px;}
+  .dayhd{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px;}
+  .dayhd input[type=text]{flex:1; min-width:160px; font-size:16px; font-weight:600;}
+  label.today{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--txt2); white-space:nowrap;}
+  input[type=text], input[type=date]{background:var(--card2); color:var(--txt); border:0.5px solid var(--line);
+    border-radius:10px; padding:9px 11px; font-size:14px; width:100%;}
+  input[type=text]:focus, input[type=date]:focus{outline:none; border-color:var(--accent);}
+  .dayhd .dateinp{flex:0 0 auto; width:158px;}
+  .slot{display:grid; grid-template-columns:78px 1fr 34px; gap:8px; margin-bottom:8px; align-items:start;}
+  .slot .fields{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .slot .fields input.full{grid-column:1 / -1;}
+  .slot .rm{display:flex; align-items:center; justify-content:center;}
+  @media(max-width:560px){ .slot{grid-template-columns:70px 1fr 32px;} .slot .fields{grid-template-columns:1fr;} }
+  .dayfoot{display:flex; gap:10px; margin-top:8px;}
+  .out{margin-top:24px;}
+  .out summary{cursor:pointer; color:var(--txt2); font-size:14px;}
+  pre{background:var(--card); border:0.5px solid var(--line); border-radius:12px; padding:14px;
+    overflow:auto; font-size:12px; max-height:340px;}
+  textarea{width:100%; min-height:120px; background:var(--card); color:var(--txt);
+    border:0.5px solid var(--line); border-radius:12px; padding:12px; font-family:ui-monospace,Menlo,monospace; font-size:13px;}
+  .msg{font-size:13px; margin-left:8px;}
+  .msg.ok{color:var(--ok);} .msg.err{color:var(--err);}
+  .foot{position:fixed; left:0; right:0; bottom:0; background:var(--bg); border-top:0.5px solid var(--line);
+    padding:12px 18px calc(12px + env(safe-area-inset-bottom)); display:flex; gap:12px; align-items:center; justify-content:center;}
+  code{background:var(--card2); padding:1px 5px; border-radius:5px; font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Schema-editor</h1>
+  <p class="lead">Fyll i schemat i formuläret och ladda ner <code>schedule.json</code>.
+    Lägg filen bredvid appen (i repo-roten) så visas den för besökarna. Varje dag har ett datum — appen jämför det med enhetens klocka för att veta vad som är "nu". Ingen server behövs; sidan kör lika bra som lokal fil.</p>
+
+  <div class="bar">
+    <button id="addDay" class="accent">+ Lägg till dag</button>
+    <label class="filebtn">Ladda befintlig schedule.json<input type="file" id="loadFile" accept="application/json,.json"></label>
+    <button id="toggleText" class="ghost">Fyll från text ▾</button>
+    <span id="topMsg" class="msg"></span>
+  </div>
+
+  <div id="textBox" style="display:none; margin-bottom:20px;">
+    <p class="lead" style="margin-bottom:8px;">Format: <code>tid | titel | plats | presentatörer | beskrivning</code> ·
+      ny dag med <code># ÅÅÅÅ-MM-DD Namn</code> (datumet avgör vilken dag som är "idag").</p>
+    <textarea id="textArea" spellcheck="false" placeholder="# 2026-09-12 Fredag&#10;09:00 | Invigning | Stora scenen | Anna Berg"></textarea>
+    <div style="margin-top:8px;"><button id="fillText" class="accent">Fyll i formuläret</button></div>
+  </div>
+
+  <div id="days"></div>
+
+  <details class="out">
+    <summary>Förhandsgranska schedule.json</summary>
+    <pre id="jsonOut"></pre>
+  </details>
+</div>
+
+<div class="foot">
+  <button id="download" class="accent">⤓ Ladda ner schedule.json</button>
+  <span id="botMsg" class="msg"></span>
+</div>
+
+<script>
+(function(){
+  const SVD=['sön','mån','tis','ons','tor','fre','lör'];
+  const SVM=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  const pad=n=>(n<10?'0':'')+n;
+  const isoToday=(()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());})();
+  function labelFromDate(x){ const m=(''+(x||'')).match(/^(\d{4})-(\d{2})-(\d{2})/); if(!m) return ''; const d=new Date(+m[1],+m[2]-1,+m[3]); return SVD[d.getDay()]+' '+d.getDate()+' '+SVM[d.getMonth()]; }
+  const emptySlot=()=>({time:'',title:'',place:'',people:'',desc:''});
+  const emptyDay =()=>({label:'',date:'',slots:[emptySlot()]});
+  let state={ days:[ {label:labelFromDate(isoToday),date:isoToday,slots:[emptySlot()]} ] };
+
+  const daysEl=document.getElementById('days');
+  const jsonOut=document.getElementById('jsonOut');
+  const topMsg=document.getElementById('topMsg'), botMsg=document.getElementById('botMsg');
+
+  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+
+  function render(){
+    daysEl.innerHTML = state.days.map((d,di)=>`
+      <div class="day" data-di="${di}">
+        <div class="dayhd">
+          <input type="date" class="dateinp" data-di="${di}" data-k="date" value="${esc(d.date)}" title="Datum">
+          <input type="text" data-di="${di}" data-k="label" value="${esc(d.label)}" placeholder="Etikett (t.ex. fre 12 sep)">
+          <button class="mini ghost" data-act="dayUp" data-di="${di}" title="Flytta upp">↑</button>
+          <button class="mini ghost" data-act="dayDown" data-di="${di}" title="Flytta ner">↓</button>
+          <button class="mini ghost" data-act="dayRm" data-di="${di}" title="Ta bort dag">✕</button>
+        </div>
+        ${d.slots.map((s,si)=>`
+          <div class="slot" data-di="${di}" data-si="${si}">
+            <input type="text" data-di="${di}" data-si="${si}" data-k="time" value="${esc(s.time)}" placeholder="09:00">
+            <div class="fields">
+              <input type="text" class="full" data-di="${di}" data-si="${si}" data-k="title" value="${esc(s.title)}" placeholder="Titel">
+              <input type="text" data-di="${di}" data-si="${si}" data-k="place" value="${esc(s.place)}" placeholder="Plats">
+              <input type="text" data-di="${di}" data-si="${si}" data-k="people" value="${esc(s.people)}" placeholder="Presentatörer">
+              <input type="text" class="full" data-di="${di}" data-si="${si}" data-k="desc" value="${esc(s.desc)}" placeholder="Beskrivning (valfri)">
+            </div>
+            <div class="rm"><button class="mini ghost" data-act="slotRm" data-di="${di}" data-si="${si}" title="Ta bort">✕</button></div>
+          </div>`).join('')}
+        <div class="dayfoot">
+          <button class="mini" data-act="slotAdd" data-di="${di}">+ punkt</button>
+          <button class="mini ghost" data-act="sortTime" data-di="${di}">Sortera på tid</button>
+        </div>
+      </div>`).join('');
+    updateJSON();
+  }
+
+  function toMin(t){const m=(t||'').match(/(\d{1,2})[:.](\d{2})/);return m?(+m[1])*60+(+m[2]):1e9;}
+  function clean(){
+    return { version:1, days: state.days.map(d=>({
+      label: d.label || labelFromDate(d.date) || 'Schema', date: d.date||'',
+      slots: d.slots.filter(s=>s.time||s.title).map(s=>({time:s.time,title:s.title,place:s.place,people:s.people,desc:s.desc}))
+    })).filter(d=>d.slots.length) };
+  }
+  function toJSON(){ return JSON.stringify(clean(), null, 2); }
+  function updateJSON(){ jsonOut.textContent=toJSON(); }
+
+  // --- delegated input/change -------------------------------------------
+  daysEl.addEventListener('input', e=>{
+    const t=e.target, di=+t.dataset.di, k=t.dataset.k;
+    if(t.dataset.si!==undefined){ state.days[di].slots[+t.dataset.si][k]=t.value; updateJSON(); return; }
+    if(k==='label'){ state.days[di].label=t.value; updateJSON(); }
+    else if(k==='date'){ state.days[di].date=t.value;
+      if(!state.days[di].label){ state.days[di].label=labelFromDate(t.value); render(); } else updateJSON(); }
+  });
+  daysEl.addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    const act=b.dataset.act, di=+b.dataset.di, si=+b.dataset.si;
+    if(act==='slotAdd'){ state.days[di].slots.push(emptySlot()); render(); }
+    else if(act==='slotRm'){ state.days[di].slots.splice(si,1); if(!state.days[di].slots.length) state.days[di].slots.push(emptySlot()); render(); }
+    else if(act==='dayRm'){ state.days.splice(di,1); if(!state.days.length) state.days.push(emptyDay()); render(); }
+    else if(act==='dayUp' && di>0){ [state.days[di-1],state.days[di]]=[state.days[di],state.days[di-1]]; render(); }
+    else if(act==='dayDown' && di<state.days.length-1){ [state.days[di+1],state.days[di]]=[state.days[di],state.days[di+1]]; render(); }
+    else if(act==='sortTime'){ state.days[di].slots.sort((a,b)=>toMin(a.time)-toMin(b.time)); render(); }
+  });
+
+  document.getElementById('addDay').onclick=()=>{ state.days.push(emptyDay()); render(); };
+
+  // --- download ----------------------------------------------------------
+  document.getElementById('download').onclick=()=>{
+    const data=clean();
+    if(!data.days.length){ botMsg.textContent='Inget att spara — fyll i minst en punkt.'; botMsg.className='msg err'; return; }
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='schedule.json'; document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},100);
+    botMsg.textContent='Nedladdad ✓'; botMsg.className='msg ok';
+    setTimeout(()=>{botMsg.textContent='';},2500);
+  };
+
+  // --- load existing JSON ------------------------------------------------
+  document.getElementById('loadFile').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ try{
+      const o=JSON.parse(r.result);
+      if(!o || !Array.isArray(o.days)) throw 0;
+      state={ days:o.days.map(d=>({ label:d.label||'', date:d.date||'',
+        slots:(d.slots&&d.slots.length?d.slots:[emptySlot()]).map(s=>({
+          time:s.time||'',title:s.title||'',place:s.place||'',people:s.people||'',desc:s.desc||'' })) })) };
+      if(!state.days.length) state.days=[emptyDay()];
+      render(); topMsg.textContent='Inläst ✓'; topMsg.className='msg ok';
+      setTimeout(()=>{topMsg.textContent='';},2500);
+    }catch(_){ topMsg.textContent='Kunde inte läsa filen som schedule.json'; topMsg.className='msg err'; } };
+    r.readAsText(f); e.target.value='';
+  };
+
+  // --- fill from pasted text --------------------------------------------
+  document.getElementById('toggleText').onclick=()=>{
+    const b=document.getElementById('textBox'); b.style.display = b.style.display==='none'?'block':'none';
+  };
+  function parseText(text){
+    const lines=text.split(/\r?\n/), out=[]; let cur=null;
+    for(const raw of lines){ const line=raw.trim(); if(!line) continue;
+      if(line[0]==='#'){ let rest=line.slice(1).trim(), date='';
+        const dm=rest.match(/^(\d{4}-\d{2}-\d{2})\s*(.*)$/);
+        if(dm){ date=dm[1]; rest=dm[2].trim(); } else if(rest[0]==='*'){ rest=rest.slice(1).trim(); }
+        cur={label:rest||labelFromDate(date), date, slots:[]}; out.push(cur);
+      } else {
+        if(!cur){ cur={label:'Schema',date:'',slots:[]}; out.push(cur); }
+        const p=line.split('|').map(x=>x.trim());
+        let time=p[0]||'',title=p[1]||'',place=p[2]||'',people=p[3]||'',desc=p[4]||'';
+        if(p.length===1){ const m=line.match(/^(\d{1,2}[:.]\d{2})\s+(.*)$/); if(m){time=m[1].replace('.',':');title=m[2];} else {time='';title=line;} }
+        cur.slots.push({time,title,place,people,desc});
+      }
+    }
+    const valid=out.filter(d=>d.slots.length); return valid.length? valid : null;
+  }
+  document.getElementById('fillText').onclick=()=>{
+    const parsed=parseText(document.getElementById('textArea').value);
+    if(!parsed){ topMsg.textContent='Hittade inga punkter i texten.'; topMsg.className='msg err'; return; }
+    state={days:parsed}; render();
+    document.getElementById('textBox').style.display='none';
+    topMsg.textContent='Ifyllt ✓'; topMsg.className='msg ok'; setTimeout(()=>{topMsg.textContent='';},2500);
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
