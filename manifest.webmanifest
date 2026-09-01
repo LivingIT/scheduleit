@@ -1,13 +1,13 @@
 {
-  "name": "Schema-ratt",
-  "short_name": "Schema",
+  "name": "ScheduleIT",
+  "short_name": "ScheduleIT",
   "description": "Ett schema med en stor 'pågår nu'-vy du rattar med tummen.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0e0f11",
-  "theme_color": "#0e0f11",
+  "background_color": "#0a0b0d",
+  "theme_color": "#0a0b0d",
   "icons": [
     { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },

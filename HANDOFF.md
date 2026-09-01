@@ -1,4 +1,4 @@
-# Schema-ratt — Handoff
+# ScheduleIT — Handoff
 
 A mobile-first schedule PWA whose differentiator is **feel**: a large "what's happening
 now" card that you move through with a tuned, fidget-quality thumb gesture. Built and
@@ -34,17 +34,12 @@ tuned interactively; this document is the context to continue in Claude Code.
   export `schedule.json`. Authoring is fully separated from the visitor view; no backend.
 - Packaged as an installable, offline PWA (manifest + service worker + icons).
 
-## 3. FIRST TASK for Claude Code — de-duplicate the source
+## 3. Source layout — DONE (was: de-duplicate the source)
 
-App code currently lives in **two** places that must be kept in sync by hand:
-- `schema-ratt.html` — the editable source (standalone, works via `file://`, shows demo).
-- `pwa/index.html` — generated from it by a Python inject step that adds the manifest
-  link, PWA meta tags, and the service-worker registration.
-
-This WILL drift. Recommended fix: make `pwa/index.html` the single source of truth (bake
-the PWA `<head>` tags + SW registration directly into it), delete `schema-ratt.html`, and
-keep a standalone copy only if you still want a `file://`-testable build (then generate
-THAT from index.html, not the reverse). Pick one source before making further changes.
+Resolved. The repo is now flat with a single source of truth: `index.html` has the PWA
+`<head>` tags + SW registration baked in directly. There is no `schema-ratt.html` and no
+`pwa/` subfolder / Python inject step anymore. `file://` still falls back to the demo
+(fetch blocked), so test the data path on the deployed URL.
 
 ## 4. Architecture (single-file app)
 
@@ -115,9 +110,9 @@ Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recomp
   and causes visible shake. Always `vvel/dvel = 0` when entering a spring phase.
 - **Single loop invariant**: never run two rAF loops. Interrupt = cancel + set mode.
 - **SPX must match** between render and drag (§5).
-- **Bump the service-worker cache version** (`schema-ratt-vN` in `sw.js`) on ANY change to
+- **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v6**.
+  network-first and updates without a bump. Currently at **v7**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -148,10 +143,12 @@ Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recomp
 
 ## 10. Files
 
-- `pwa/` — deployable bundle: `index.html`, `schedule.json` (the schedule; swap to update),
-  `editor.html` (form authoring tool), `manifest.webmanifest`, `sw.js` (v5, offline +
-  network-first schedule.json), `icon-*.png`, `README.md`.
-- `schema-ratt.html` — standalone source (see §3; consolidate).
+Flat repo root, deployed as-is via GitHub Pages:
+- `index.html` — the app (single source of truth; PWA head + SW registration baked in).
+- `schedule.json` — the schedule the app shows; swap this file to update content.
+- `editor.html` — standalone form authoring tool.
+- `manifest.webmanifest`, `sw.js` (v7, offline + network-first `schedule.json`), `icon-*.png`.
+- `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
 ```json

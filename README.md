@@ -1,4 +1,4 @@
-# Schema-ratt (PWA)
+# ScheduleIT (PWA)
 
 Ett schema med en stor "pågår nu"-vy som rattas med tummen, dag-växling i sidled,
 och tryck-för-detalj. Installerbar och offline-kapabel.
@@ -33,10 +33,10 @@ Fyll i, eller ladda en befintlig `schedule.json` för att ändra den (med datumf
 eller lägg den bredvid appen. Den är bara ett verktyg för dig, inte en besökarvy.
 
 ## Publicera på GitHub Pages
-1. Nytt repo (t.ex. `schema-ratt`), lägg **alla filer** i repo-roten.
+1. Nytt repo (t.ex. `scheduleit`), lägg **alla filer** i repo-roten.
 2. `git add . && git commit -m "PWA" && git push`
 3. Repo → **Settings → Pages** → *Deploy from branch* → `main` / `/root` → **Save**.
-4. Appen ligger på `https://<användarnamn>.github.io/schema-ratt/`.
+4. Appen ligger på `https://<användarnamn>.github.io/scheduleit/`.
 
 ## Installera på mobilen (efter publicering)
 - **Android (Chrome):** öppna länken → meny → *Installera app*. Fullskärm + vibration.
@@ -46,4 +46,4 @@ eller lägg den bredvid appen. Den är bara ett verktyg för dig, inte en besök
 - Service worker, "installera" och `schedule.json`-hämtning fungerar **bara över HTTPS**
   (GitHub Pages), inte när du öppnar `index.html` som lokal fil. Som fil visas exemplet.
 - `schedule.json` hämtas *network-first* och uppdateras utan versionsbyte.
-  Ändrar du appkoden (`index.html`/`sw.js`): höj cache-versionen (`schema-ratt-vN`) i `sw.js`.
+  Ändrar du appkoden (`index.html`/`sw.js`): höj cache-versionen (`scheduleit-vN`) i `sw.js`.
