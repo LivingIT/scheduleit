@@ -31,6 +31,11 @@ tuned interactively; this document is the context to continue in Claude Code.
 - Tap a resting focused card → detail bottom-sheet. Always carries day label + time range
   (start–next start) + title, plus place/people/description when present. Swipe the sheet
   down (or tap scrim / "Stäng") to dismiss. Tap during momentum = stops it — iOS-scroll.
+- Gesture discoverability (a real first-time user couldn't find the drag): a bobbing
+  up-chevron cue `#swipecue` + the text hint, both re-surfaced after ~14s idle (capped 3×);
+  plus `demoGesture()` — a one-time self-demo on the very first visit (`localStorage
+  sit_seen`) where the card stack actually bobs vertically then the next day peeks in.
+  First touch dismisses all of it.
 - Date-aware "now": each day has a date; app compares date + clock to the device time to
   pick today's day and the ongoing slot, refreshed every 60s. No manual "today" flag.
 - Data pipeline: app fetches `schedule.json` at start (falls back to a built-in demo with
@@ -127,7 +132,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v10**.
+  network-first and updates without a bump. Currently at **v11**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -149,7 +154,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 ## 9. Roadmap (suggested order)
 
 Done: source de-dup (§3); repo + Pages live; brand pass (orange + depth/shadows, morph
-focus, hint recovery); event title; swipe-down-to-dismiss; detent riffle at speed;
+focus, hint recovery); event title; swipe-down-to-dismiss; detent riffle; first-run gesture demo + swipe cue;
 edit-button gated behind `#edit`. Still to verify on a real device: install + offline, and
 the feel of the fling coast (`pow(0.24,dt)`) and the `opacity 1-ad*0.5` neighbour falloff.
 
@@ -166,7 +171,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v10, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v11, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)

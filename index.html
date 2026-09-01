@@ -56,6 +56,12 @@
   #nowBtn.show{opacity:1; pointer-events:auto;}
   #hint{position:fixed; left:0; right:0; bottom:calc(84px + env(safe-area-inset-bottom)); text-align:center;
     color:var(--txt2); font-size:12px; z-index:250; transition:opacity .5s; pointer-events:none;}
+  #swipecue{position:fixed; left:0; right:0; bottom:calc(108px + env(safe-area-inset-bottom));
+    display:flex; justify-content:center; z-index:250; pointer-events:none; opacity:0; transition:opacity .5s;}
+  #swipecue.show{opacity:.75;}
+  #swipecue svg{width:24px; height:24px; color:var(--brand); animation:cuebob 1.9s ease-in-out infinite;}
+  @keyframes cuebob{0%,100%{transform:translateY(4px);opacity:.3;} 50%{transform:translateY(-5px);opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ #swipecue svg{animation:none;} }
   /* detail sheet */
   #scrim{position:fixed; inset:0; background:rgba(0,0,0,.62); opacity:0; pointer-events:none;
     transition:opacity .28s ease; z-index:400; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);}
@@ -108,6 +114,7 @@
   <div id="evthdr"></div>
   <div id="dayhdr"></div>
   <div id="stage"></div>
+  <div id="swipecue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 13 12 7 18 13"/><polyline points="6 18 12 12 18 18" opacity=".45"/></svg></div>
   <div id="hint">dra uppåt för att ratta · swipa vänster för nästa dag</div>
   <button id="nowBtn">↺ Just nu</button>
 
@@ -248,6 +255,7 @@
     dayhdr.classList.toggle('no-evt', !t);
   }
   const nowBtn=document.getElementById('nowBtn'), hint=document.getElementById('hint');
+  const swipecue=document.getElementById('swipecue');
 
   // --- state -------------------------------------------------------------
   let vpos=[], dayX=0, active=0, vvel=0, dvel=0, W=window.innerWidth;
@@ -390,15 +398,26 @@
     raf=requestAnimationFrame(frame);
   }
 
-  // --- hint (the only teacher for the gestures) -------------------------
-  // Re-surface it after a stretch of no interaction so a returning or
-  // fumbling user isn't stranded on a controls-free screen. Capped so it
-  // never nags someone who clearly knows the app.
+  // --- gesture teachers ------------------------------------------------
+  // The gesture is invisible (no scrollbars, no controls). A first-time user
+  // tested it and couldn't find the drag. So: a bobbing up-chevron cue + a
+  // text line, both re-surfaced after idle (capped, so it never nags a
+  // regular), plus a one-time self-demo the very first visit where the card
+  // actually moves — motion teaches affordance better than any icon.
   let hintTimer=null, hintShots=0;
-  function hideHint(){ hint.style.opacity=0; clearTimeout(hintTimer); }
+  function showCue(on){ hint.style.opacity=on?0.75:0; swipecue.classList.toggle('show',on); }
+  function hideHint(){ showCue(false); clearTimeout(hintTimer); }
   function armHint(){ clearTimeout(hintTimer); if(hintShots>=3) return;
-    hintTimer=setTimeout(()=>{ hint.style.opacity=0.75; hintShots++;
-      clearTimeout(hintTimer); hintTimer=setTimeout(()=>{ hint.style.opacity=0; },4200); },14000); }
+    hintTimer=setTimeout(()=>{ showCue(true); hintShots++;
+      clearTimeout(hintTimer); hintTimer=setTimeout(()=>{ showCue(false); },4200); },14000); }
+  function demoGesture(){
+    if(drag||running||mode!=='idle'||scrim.classList.contains('open')) return;
+    const base=days[active].nowIndex||0, mx=days[active].slots.length-1;
+    vpos[active]=base+(base<mx?0.55:-0.55); vTarget=base; vvel=0; mode='settle'; ensureLoop();
+    if(maxDay>0) setTimeout(()=>{ if(drag||mode!=='idle') return;
+      dayX=TODAY+(TODAY<maxDay?0.13:-0.13); dayTarget=TODAY; dvel=0; mode='daysettle'; ensureLoop();
+    },1000);
+  }
 
   // --- gestures ----------------------------------------------------------
   stage.addEventListener('pointerdown',e=>{
@@ -539,7 +558,7 @@
     const parsed=parse(impText.value);
     if(!parsed){ impErr.textContent='Hittade inga punkter. Kontrollera formatet.'; return; }
     days=parsed; recompute(); build(); resetState(); render(); renderEvt(); imp.classList.remove('open');
-    hint.style.opacity=1; setTimeout(()=>{hint.style.opacity=0;},3500);
+    showCue(true); setTimeout(()=>{ if(!drag) showCue(false); },3500);
   };
   document.getElementById('impDownload').onclick=()=>{
     const parsed=parse(impText.value);
@@ -557,7 +576,11 @@
     if(data) days=data;                 // otherwise keep built-in demo fallback
     recompute(); build(); resetState(); computeLayout(); render(); renderEvt();
     setInterval(()=>{ recompute(); render(); }, 60000);   // keep "nu" current over time
-    setTimeout(()=>{ hint.style.opacity=0; },4500);
+    let firstVisit=true;
+    try{ firstVisit=!localStorage.getItem('sit_seen'); localStorage.setItem('sit_seen','1'); }catch(e){}
+    showCue(true);
+    setTimeout(()=>{ if(!drag) showCue(false); }, firstVisit?6500:4500);
+    if(firstVisit) setTimeout(demoGesture, 1100);
     armHint();
   })();
 })();
