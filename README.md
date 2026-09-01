@@ -46,4 +46,4 @@ eller lägg den bredvid appen. Den är bara ett verktyg för dig, inte en besök
 - Service worker, "installera" och `schedule.json`-hämtning fungerar **bara över HTTPS**
   (GitHub Pages), inte när du öppnar `index.html` som lokal fil. Som fil visas exemplet.
 - `schedule.json` hämtas *network-first* och uppdateras utan versionsbyte.
-  Ändrar du appkoden (`index.html`/`sw.js`): höj `schema-ratt-v4` → `-v5` i `sw.js`.
+  Ändrar du appkoden (`index.html`/`sw.js`): höj cache-versionen (`schema-ratt-vN`) i `sw.js`.

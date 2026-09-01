@@ -24,7 +24,7 @@ tuned interactively; this document is the context to continue in Claude Code.
 - Horizontal day switching: swipe LEFT = next (later) day; future days sit to the right.
   Axis-locked so vertical/horizontal never fight. Per-day vertical scroll position is
   remembered. Day transition uses a subtle scale+fade depth effect.
-- "Tillbaka till nu" button: springs home across BOTH axes (right day + right slot).
+- "Just nu" button (accent-filled): springs home across BOTH axes (right day + right slot).
 - Tap a resting focused card → detail bottom-sheet (time/place/people/description).
   Tap during momentum = stops it (does not open) — iOS-scroll semantics.
 - Date-aware "now": each day has a date; app compares date + clock to the device time to
@@ -117,7 +117,7 @@ Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recomp
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`schema-ratt-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v5**.
+  network-first and updates without a bump. Currently at **v6**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 

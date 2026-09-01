@@ -6,12 +6,16 @@
 <title>Schema-ratt</title>
 <style>
   :root{
-    --bg:#0e0f11; --card:#1a1c1f; --card2:#212429; --line:#2c2f34;
-    --line-accent:#4a7dff; --txt:#f2f3f5; --txt2:#9aa0a8; --accent:#6f9bff; --accent-bg:#1b2740;
+    --bg:#0a0b0d; --card:#1c1e22; --card2:#24272c; --line:#33373d;
+    --line-accent:#4a7dff; --txt:#f2f3f5; --txt2:#9aa0a8; --accent:#6f9bff; --accent-rgb:111,155,255;
+    --accent-bg:#1b2740;
+    --shadow:0 10px 30px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.35);
   }
   @media (prefers-color-scheme: light){
-    :root{ --bg:#f4f4f2; --card:#ffffff; --card2:#ffffff; --line:#e4e4e0;
-      --line-accent:#2f6bff; --txt:#16181b; --txt2:#6b7078; --accent:#1f5fff; --accent-bg:#e7efff; }
+    :root{ --bg:#ececea; --card:#ffffff; --card2:#ffffff; --line:#dcdcd6;
+      --line-accent:#2f6bff; --txt:#16181b; --txt2:#6b7078; --accent:#1f5fff; --accent-rgb:31,95,255;
+      --accent-bg:#e7efff;
+      --shadow:0 8px 22px rgba(20,24,40,.12), 0 1px 4px rgba(20,24,40,.08); }
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; height:100%; overflow:hidden; overscroll-behavior:none;
@@ -27,7 +31,8 @@
   #stage{position:fixed; inset:0; touch-action:none;}
   .day{position:absolute; inset:0; will-change:transform,opacity; transform-origin:center center;}
   .wrap{position:absolute; left:0; right:0; margin:0 auto; width:calc(100% - 40px); max-width:440px; top:50%; will-change:transform,opacity; transform-origin:center center;}
-  .card{background:var(--card); border:0.5px solid var(--line); border-radius:20px; padding:20px 22px;}
+  .card{background:var(--card); border:0.5px solid var(--line); border-radius:20px; padding:20px 22px;
+    box-shadow:var(--shadow);}
   .time{font-variant-numeric:tabular-nums; font-weight:600; color:var(--accent); font-size:16px;}
   .badge{font-size:11px; color:#fff; background:var(--accent); padding:3px 10px; border-radius:20px; margin-left:10px; opacity:0;}
   .title{font-weight:600; line-height:1.25; margin-top:8px; font-size:17px;}
@@ -35,22 +40,21 @@
   .row{font-size:14px; color:var(--txt2); margin-top:8px; display:flex; gap:7px; align-items:center;}
   .dot{width:5px; height:5px; border-radius:50%; background:var(--txt2); flex:none;}
   #nowBtn{position:fixed; bottom:calc(24px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
-    background:var(--card2); color:var(--txt); border:0.5px solid var(--line); border-radius:24px;
-    padding:11px 22px; font-size:14px; opacity:0; transition:opacity .2s; z-index:300;
-    pointer-events:none; touch-action:manipulation;}
+    background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:24px;
+    padding:11px 22px; font-size:14px; font-weight:600; opacity:0; transition:opacity .2s; z-index:300;
+    box-shadow:0 8px 24px rgba(var(--accent-rgb),.4); pointer-events:none; touch-action:manipulation;}
   #nowBtn.show{opacity:1; pointer-events:auto;}
   #hint{position:fixed; left:0; right:0; bottom:calc(84px + env(safe-area-inset-bottom)); text-align:center;
     color:var(--txt2); font-size:12px; z-index:250; transition:opacity .5s; pointer-events:none;}
   /* detail sheet */
-  #scrim{position:fixed; inset:0; background:rgba(0,0,0,.5); opacity:0; pointer-events:none;
-    transition:opacity .28s ease; z-index:400;}
+  #scrim{position:fixed; inset:0; background:rgba(0,0,0,.62); opacity:0; pointer-events:none;
+    transition:opacity .28s ease; z-index:400; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);}
   #scrim.open{opacity:1; pointer-events:auto;}
   #sheet{position:fixed; left:0; right:0; bottom:0; z-index:410; max-width:520px; margin:0 auto;
     background:var(--card2); border-top-left-radius:22px; border-top-right-radius:22px;
     padding:10px 24px calc(28px + env(safe-area-inset-bottom));
-    transform:translateY(112%); transition:transform .34s cubic-bezier(.22,.61,.36,1);
-    box-shadow:0 -12px 44px rgba(0,0,0,.4); touch-action:none;}
-  #sheet.open{transform:translateY(0);}
+    transform:translateY(112%); transition:transform .34s cubic-bezier(.22,.61,.36,1); touch-action:none;}
+  #sheet.open{transform:translateY(0); box-shadow:0 -12px 44px rgba(0,0,0,.4);}
   #sheet .grab{width:38px; height:4px; border-radius:2px; background:var(--line); margin:6px auto 18px;}
   #sheet .s-time{font-variant-numeric:tabular-nums; font-weight:600; color:var(--accent); font-size:16px;}
   #sheet .s-title{font-weight:600; font-size:22px; line-height:1.2; margin:8px 0 4px;}
@@ -92,7 +96,7 @@
   <div id="dayhdr"></div>
   <div id="stage"></div>
   <div id="hint">dra uppåt för att ratta · swipa vänster för nästa dag</div>
-  <button id="nowBtn">↺ tillbaka till nu</button>
+  <button id="nowBtn">↺ Just nu</button>
 
   <div id="scrim"></div>
   <div id="sheet">
@@ -257,18 +261,22 @@
       const d=i-vp, ad=Math.abs(d);
       if(ad>2.8){cards[i].style.display='none'; continue;}
       cards[i].style.display='block';
-      const c=Math.max(0,1-ad), sc=Math.max(0.6,1-ad*0.15);
+      const c=Math.max(0,1-ad), sc=Math.max(0.58,1-ad*0.18);
+      // e: a peaked "focus" curve — breaks the tie between two half-centered cards
+      // faster than c does, so mid-drag always has one card clearly in front.
+      const e=c*c;
       const y=d*SP - cards[i].offsetHeight/2;
       cards[i].style.transform='translateY('+y+'px) scale('+sc+')';
-      cards[i].style.opacity=Math.max(0,1-ad*0.4);
+      cards[i].style.opacity=Math.max(0,1-ad*0.55);
       cards[i].style.zIndex=String(100-Math.round(ad*10));
       const det=cards[i].querySelector('.detail');
       det.style.maxHeight=(c*100)+'px'; det.style.opacity=c;
       cards[i].querySelector('.title').style.fontSize=(17+c*8)+'px';
       cards[i].querySelector('.time').style.fontSize=(16+c*4)+'px';
       const card=cards[i].querySelector('.card');
-      card.style.borderColor=c>0.55?'var(--line-accent)':'var(--line)';
-      card.style.borderWidth=c>0.55?'1.5px':'0.5px';
+      card.style.borderColor='color-mix(in srgb, var(--line-accent) '+Math.round(e*100)+'%, var(--line))';
+      card.style.borderWidth=(0.5+e*1).toFixed(2)+'px';
+      card.style.boxShadow='var(--shadow), 0 8px 24px rgba(var(--accent-rgb),'+(0.16*e).toFixed(3)+')';
       const b=cards[i].querySelector('.badge'); if(b){ const dd=days[di]; const isNow=dd.isToday&&dd._live&&i===dd.nowIndex; b.style.opacity=isNow?Math.max(0,(c-0.3)/0.7):0; }
     }
   }
@@ -342,6 +350,16 @@
     raf=requestAnimationFrame(frame);
   }
 
+  // --- hint (the only teacher for the gestures) -------------------------
+  // Re-surface it after a stretch of no interaction so a returning or
+  // fumbling user isn't stranded on a controls-free screen. Capped so it
+  // never nags someone who clearly knows the app.
+  let hintTimer=null, hintShots=0;
+  function hideHint(){ hint.style.opacity=0; clearTimeout(hintTimer); }
+  function armHint(){ clearTimeout(hintTimer); if(hintShots>=3) return;
+    hintTimer=setTimeout(()=>{ hint.style.opacity=0.75; hintShots++;
+      clearTimeout(hintTimer); hintTimer=setTimeout(()=>{ hint.style.opacity=0; },4200); },14000); }
+
   // --- gestures ----------------------------------------------------------
   stage.addEventListener('pointerdown',e=>{
     if(ac&&ac.state==='suspended')ac.resume();
@@ -351,7 +369,7 @@
     drag=true; mode='drag'; axis='none'; stage.setPointerCapture(e.pointerId);
     sX=e.clientX; sY=e.clientY; sVpos=vpos[active]; sDayX=dayX;
     lX=e.clientX; lY=e.clientY; lT=performance.now(); vvel=0; dvel=0;
-    lastDet=Math.round(vpos[active]); hint.style.opacity=0;
+    lastDet=Math.round(vpos[active]); hideHint();
   });
   stage.addEventListener('pointermove',e=>{
     if(!drag)return;
@@ -378,10 +396,11 @@
       if(pressResting) openSheet(active, Math.round(vpos[active]));
       mode='idle'; render();
     }
+    armHint();
   }
   stage.addEventListener('pointerup',end);
   stage.addEventListener('pointercancel',end);
-  function goNow(){ drag=false; vvel=0; dvel=0; active=TODAY; mode='gonow'; ensureLoop(); }
+  function goNow(){ drag=false; vvel=0; dvel=0; active=TODAY; mode='gonow'; ensureLoop(); hideHint(); armHint(); }
   nowBtn.addEventListener('pointerdown',e=>{ e.preventDefault(); e.stopPropagation(); goNow(); });
 
   // --- detail sheet ------------------------------------------------------
@@ -398,9 +417,9 @@
     setRow('sPlaceRow','sPlace', s.place);
     setRow('sPeopleRow','sPeople', s.people);
     const dsc=document.getElementById('sDesc'); dsc.textContent=s.desc||''; dsc.style.display=s.desc?'block':'none';
-    scrim.classList.add('open'); sheet.classList.add('open');
+    scrim.classList.add('open'); sheet.classList.add('open'); hideHint();
   }
-  function closeSheet(){ scrim.classList.remove('open'); sheet.classList.remove('open'); }
+  function closeSheet(){ scrim.classList.remove('open'); sheet.classList.remove('open'); armHint(); }
   scrim.addEventListener('pointerdown',e=>{ e.preventDefault(); closeSheet(); });
   document.getElementById('sClose').onclick=closeSheet;
 
@@ -457,7 +476,8 @@
     if(data) days=data;                 // otherwise keep built-in demo fallback
     recompute(); build(); resetState(); computeLayout(); render();
     setInterval(()=>{ recompute(); render(); }, 60000);   // keep "nu" current over time
-    setTimeout(()=>{hint.style.opacity=0;},4500);
+    setTimeout(()=>{ hint.style.opacity=0; },4500);
+    armHint();
   })();
 })();
 </script>
