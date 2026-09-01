@@ -16,21 +16,21 @@
           "time": "09:30",
           "title": "Invigning & välkomsttal",
           "place": "Stora scenen",
-          "people": "Anna Berg",
+          "people": "Elin Sandell",
           "desc": ""
         },
         {
           "time": "10:15",
           "title": "Framtidens laddinfrastruktur",
           "place": "Stora scenen",
-          "people": "Pål Svensson · Katinka Hindmo",
+          "people": "Marcus Lindqvist · Johanna Ek",
           "desc": "Hur snabbladdning, nätbalansering och bilens mjukvara måste samspela för att räckvidden ska hålla i verklig trafik. Följt av frågestund."
         },
         {
           "time": "11:30",
           "title": "Panelsamtal: mjukvara i bilen",
           "place": "Verkstaden",
-          "people": "Jörgen Osvald m.fl.",
+          "people": "Henrik Dahl m.fl.",
           "desc": ""
         },
         {
@@ -44,7 +44,7 @@
           "time": "13:45",
           "title": "Workshop: Bluetooth-testning",
           "place": "Rum 3",
-          "people": "Pål Svensson",
+          "people": "Marcus Lindqvist",
           "desc": "Praktisk genomgång av hur vi testar återanslutning, samtidiga enheter och profilväxling i infotainmentsystemet. Ta med egen laptop."
         },
         {
@@ -58,7 +58,7 @@
           "time": "15:30",
           "title": "Keynote: nästa årtionde",
           "place": "Stora scenen",
-          "people": "Anna Berg",
+          "people": "Elin Sandell",
           "desc": "En blick framåt mot vad mjukvarudefinierade fordon innebär för hur vi bygger, testar och uppdaterar bilar."
         },
         {
@@ -78,14 +78,14 @@
           "time": "09:30",
           "title": "Morgonyoga",
           "place": "Takterrassen",
-          "people": "Mia Holm",
+          "people": "Sofia Åkerlund",
           "desc": ""
         },
         {
           "time": "10:30",
           "title": "Djupdykning: CarPlay-integration",
           "place": "Stora scenen",
-          "people": "Pål Svensson",
+          "people": "Marcus Lindqvist",
           "desc": ""
         },
         {
@@ -106,7 +106,7 @@
           "time": "16:00",
           "title": "Demos & prisutdelning",
           "place": "Stora scenen",
-          "people": "Anna Berg",
+          "people": "Elin Sandell",
           "desc": ""
         }
       ]
@@ -119,14 +119,14 @@
           "time": "10:00",
           "title": "Frukostpanel",
           "place": "Foajén",
-          "people": "Jörgen Osvald",
+          "people": "Henrik Dahl",
           "desc": ""
         },
         {
           "time": "11:00",
           "title": "Framtidsspaning: mjukvarudefinierade bilar",
           "place": "Stora scenen",
-          "people": "Katinka Hindmo",
+          "people": "Johanna Ek",
           "desc": ""
         },
         {
