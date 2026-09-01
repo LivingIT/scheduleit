@@ -112,7 +112,7 @@ Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recomp
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v7**.
+  network-first and updates without a bump. Currently at **v8**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -147,7 +147,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v7, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v8, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
