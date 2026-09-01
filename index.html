@@ -6,15 +6,18 @@
 <title>ScheduleIT</title>
 <style>
   :root{
+    /* Living IT brand orange (#ff8705). --brand is the fixed fill, --accent adapts
+       to the theme for use as small text / detail so it stays legible. */
+    --brand:#ff8705; --brand-rgb:255,135,5; --on-brand:#1c1204;
     --bg:#0a0b0d; --card:#1c1e22; --card2:#24272c; --line:#33373d;
-    --line-accent:#4a7dff; --txt:#f2f3f5; --txt2:#9aa0a8; --accent:#6f9bff; --accent-rgb:111,155,255;
-    --accent-bg:#1b2740;
+    --line-accent:#ff8705; --txt:#f2f3f5; --txt2:#9aa0a8; --accent:#ff9c3d; --accent-rgb:255,156,61;
+    --accent-bg:#2a1c08;
     --shadow:0 10px 30px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.35);
   }
   @media (prefers-color-scheme: light){
     :root{ --bg:#ececea; --card:#ffffff; --card2:#ffffff; --line:#dcdcd6;
-      --line-accent:#2f6bff; --txt:#16181b; --txt2:#6b7078; --accent:#1f5fff; --accent-rgb:31,95,255;
-      --accent-bg:#e7efff;
+      --line-accent:#e0740c; --txt:#16181b; --txt2:#6b7078; --accent:#a85800; --accent-rgb:180,94,0;
+      --accent-bg:#ffe8d2;
       --shadow:0 8px 22px rgba(20,24,40,.12), 0 1px 4px rgba(20,24,40,.08); }
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -26,23 +29,29 @@
     display:flex; justify-content:space-between; align-items:center; z-index:300;}
   #top button{background:none; border:0.5px solid var(--line); color:var(--txt2);
     border-radius:16px; padding:6px 12px; font-size:12px; touch-action:manipulation;}
-  #dayhdr{position:fixed; top:calc(50px + env(safe-area-inset-top)); left:0; right:0; text-align:center;
-    font-size:15px; font-weight:600; color:var(--txt); z-index:250; pointer-events:none;}
+  #evthdr{position:fixed; top:calc(44px + env(safe-area-inset-top)); left:0; right:0; text-align:center;
+    font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--brand);
+    z-index:250; pointer-events:none; padding:0 40px; white-space:nowrap; overflow:hidden;
+    text-overflow:ellipsis; opacity:0; transition:opacity .3s;}
+  #evthdr.show{opacity:1;}
+  #dayhdr{position:fixed; top:calc(62px + env(safe-area-inset-top)); left:0; right:0; text-align:center;
+    font-size:18px; font-weight:600; color:var(--txt); z-index:250; pointer-events:none;}
+  #dayhdr.no-evt{top:calc(52px + env(safe-area-inset-top));}
   #stage{position:fixed; inset:0; touch-action:none;}
   .day{position:absolute; inset:0; will-change:transform,opacity; transform-origin:center center;}
   .wrap{position:absolute; left:0; right:0; margin:0 auto; width:calc(100% - 40px); max-width:440px; top:50%; will-change:transform,opacity; transform-origin:center center;}
   .card{background:var(--card); border:0.5px solid var(--line); border-radius:20px; padding:20px 22px;
     box-shadow:var(--shadow);}
   .time{font-variant-numeric:tabular-nums; font-weight:600; color:var(--accent); font-size:16px;}
-  .badge{font-size:11px; color:#fff; background:var(--accent); padding:3px 10px; border-radius:20px; margin-left:10px; opacity:0;}
+  .badge{font-size:11px; font-weight:600; color:var(--on-brand); background:var(--brand); padding:3px 10px; border-radius:20px; margin-left:10px; opacity:0;}
   .title{font-weight:600; line-height:1.25; margin-top:8px; font-size:17px;}
   .detail{overflow:hidden; max-height:0; opacity:0;}
   .row{font-size:14px; color:var(--txt2); margin-top:8px; display:flex; gap:7px; align-items:center;}
   .dot{width:5px; height:5px; border-radius:50%; background:var(--txt2); flex:none;}
   #nowBtn{position:fixed; bottom:calc(24px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
-    background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:24px;
+    background:var(--brand); color:var(--on-brand); border:1px solid var(--brand); border-radius:24px;
     padding:11px 22px; font-size:14px; font-weight:600; opacity:0; transition:opacity .2s; z-index:300;
-    box-shadow:0 8px 24px rgba(var(--accent-rgb),.4); pointer-events:none; touch-action:manipulation;}
+    box-shadow:0 8px 24px rgba(var(--brand-rgb),.4); pointer-events:none; touch-action:manipulation;}
   #nowBtn.show{opacity:1; pointer-events:auto;}
   #hint{position:fixed; left:0; right:0; bottom:calc(84px + env(safe-area-inset-bottom)); text-align:center;
     color:var(--txt2); font-size:12px; z-index:250; transition:opacity .5s; pointer-events:none;}
@@ -78,7 +87,7 @@
   #impPreview{background:var(--card2); color:var(--txt);}
   #impCancel{background:var(--card2); color:var(--txt);}
   #impDownload{width:100%; margin-top:10px; padding:14px; border-radius:14px; font-size:15px; font-weight:600;
-    background:var(--accent); color:#fff; border:0.5px solid var(--accent);}
+    background:var(--brand); color:var(--on-brand); border:0.5px solid var(--brand);}
   #impErr{color:#ff6b6b; font-size:13px; min-height:18px; margin-top:8px;}
 </style>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -93,6 +102,7 @@
     <button id="impOpen">✎ Redigera</button>
     <button id="mute">🔊 tick</button>
   </div>
+  <div id="evthdr"></div>
   <div id="dayhdr"></div>
   <div id="stage"></div>
   <div id="hint">dra uppåt för att ratta · swipa vänster för nästa dag</div>
@@ -113,6 +123,7 @@
     <h1>Redigera schema</h1>
     <p class="sub">Format: <code>tid | titel | plats | presentatörer | beskrivning</code> (allt utom tid/titel valfritt).
       Ny dag med <code>#&nbsp;ÅÅÅÅ-MM-DD&nbsp;Namn</code> (datum styr vilken dag som är "idag").
+      Eventtitel högst upp med <code>!&nbsp;Namn på eventet</code> (valfritt).
       <strong>Ladda ner</strong> ger dig <code>schedule.json</code> att lägga bredvid appen — det är så besökarna får schemat, utan den här vyn.</p>
     <textarea id="impText" spellcheck="false"></textarea>
     <div id="impErr"></div>
@@ -162,8 +173,10 @@
   // --- text format (author tool): "# YYYY-MM-DD  Label" + "tid | titel | plats | pers | beskr" ---
   function parse(text){
     const lines=text.split(/\r?\n/); const out=[]; let cur=null;
+    let evt=null;
     for(const raw of lines){
       const line=raw.trim(); if(!line) continue;
+      if(line[0]==='!'){ evt=line.slice(1).trim(); continue; }   // event title
       if(line[0]==='#'){
         let rest=line.slice(1).trim(), date='';
         const dm=rest.match(/^(\d{4}-\d{2}-\d{2})\s*(.*)$/);
@@ -182,7 +195,9 @@
       }
     }
     const valid=normalize(out);
-    return valid.length? valid : null;
+    if(!valid.length) return null;
+    EVT = evt || '';   // author tool is full source of truth; no "! " line clears it
+    return valid;
   }
 
   // --- built-in demo (dates relative to today, so "nu" is always live) ---
@@ -217,10 +232,17 @@
   }
   // --- mutable app data & DOM -------------------------------------------
   let days=fallbackDays();
+  let EVT='Living IT Höstevent 2026';   // optional event title; '' hides the top line
   let SP=150; let maxDay, TODAY, cardsByDay=[];
   function computeLayout(){ SP=(window.innerWidth<600)?150:Math.max(160,Math.min(230,Math.round(window.innerHeight*0.20))); }
   const stage=document.getElementById('stage');
+  const evthdr=document.getElementById('evthdr');
   const dayhdr=document.getElementById('dayhdr');
+  function renderEvt(){
+    const t=(EVT||'').trim();
+    evthdr.textContent=t; evthdr.classList.toggle('show', !!t);
+    dayhdr.classList.toggle('no-evt', !t);
+  }
   const nowBtn=document.getElementById('nowBtn'), hint=document.getElementById('hint');
 
   // --- state -------------------------------------------------------------
@@ -427,13 +449,18 @@
   function fromJSON(obj){
     if(!obj || !Array.isArray(obj.days)) return null;
     const out=normalize(obj.days);
-    return out.length? out : null;
+    if(!out.length) return null;
+    EVT = typeof obj.title==='string' ? obj.title.trim() : '';
+    return out;
   }
   function toJSON(){
-    return JSON.stringify({version:1, days:days.map(d=>({
+    const o={version:1};
+    if((EVT||'').trim()) o.title=EVT.trim();
+    o.days=days.map(d=>({
       label:d.label, date:d.date||'',
       slots:d.slots.map(s=>({time:s.time,title:s.title,place:s.place,people:s.people,desc:s.desc}))
-    }))}, null, 2);
+    }));
+    return JSON.stringify(o, null, 2);
   }
   function slotLine(s){
     const p=[s.time,s.title,s.place,s.people,s.desc];
@@ -441,7 +468,8 @@
     return p.slice(0,last+1).map(x=>x||'').join(' | ');
   }
   function toText(){
-    return days.map(d=>('# '+(d.date? d.date+'  ':'')+d.label+'\n'+d.slots.map(slotLine).join('\n'))).join('\n\n');
+    const body=days.map(d=>('# '+(d.date? d.date+'  ':'')+d.label+'\n'+d.slots.map(slotLine).join('\n'))).join('\n\n');
+    return ((EVT||'').trim()? '! '+EVT.trim()+'\n\n':'')+body;
   }
   function download(name, text){
     const blob=new Blob([text],{type:'application/json'});
@@ -457,13 +485,13 @@
   document.getElementById('impPreview').onclick=()=>{
     const parsed=parse(impText.value);
     if(!parsed){ impErr.textContent='Hittade inga punkter. Kontrollera formatet.'; return; }
-    days=parsed; recompute(); build(); resetState(); render(); imp.classList.remove('open');
+    days=parsed; recompute(); build(); resetState(); render(); renderEvt(); imp.classList.remove('open');
     hint.style.opacity=1; setTimeout(()=>{hint.style.opacity=0;},3500);
   };
   document.getElementById('impDownload').onclick=()=>{
     const parsed=parse(impText.value);
     if(!parsed){ impErr.textContent='Hittade inga punkter. Kontrollera formatet.'; return; }
-    days=parsed; recompute(); build(); resetState(); render();
+    days=parsed; recompute(); build(); resetState(); render(); renderEvt();
     download('schedule.json', toJSON());
     impErr.textContent='';
   };
@@ -474,7 +502,7 @@
     let data=null;
     try{ const r=await fetch('./schedule.json',{cache:'no-store'}); if(r.ok) data=fromJSON(await r.json()); }catch(e){}
     if(data) days=data;                 // otherwise keep built-in demo fallback
-    recompute(); build(); resetState(); computeLayout(); render();
+    recompute(); build(); resetState(); computeLayout(); render(); renderEvt();
     setInterval(()=>{ recompute(); render(); }, 60000);   // keep "nu" current over time
     setTimeout(()=>{ hint.style.opacity=0; },4500);
     armHint();

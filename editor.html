@@ -6,9 +6,10 @@
 <title>ScheduleIT-editor</title>
 <style>
   :root{ --bg:#0e0f11; --card:#1a1c1f; --card2:#212429; --line:#2c2f34;
-    --accent:#2f6bff; --txt:#f2f3f5; --txt2:#9aa0a8; --ok:#3ecf8e; --err:#ff6b6b; }
+    --brand:#ff8705; --on-brand:#1c1204; --accent:#ff8705;
+    --txt:#f2f3f5; --txt2:#9aa0a8; --ok:#3ecf8e; --err:#ff6b6b; }
   @media (prefers-color-scheme: light){
-    :root{ --bg:#f4f4f2; --card:#fff; --card2:#fff; --line:#e4e4e0; --accent:#1f5fff;
+    :root{ --bg:#f4f4f2; --card:#fff; --card2:#fff; --line:#e4e4e0; --accent:#c25e00;
       --txt:#16181b; --txt2:#6b7078; } }
   *{box-sizing:border-box;}
   body{margin:0; background:var(--bg); color:var(--txt);
@@ -19,7 +20,7 @@
   .bar{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;}
   button, .filebtn{font-size:14px; font-weight:600; border-radius:12px; border:0.5px solid var(--line);
     background:var(--card2); color:var(--txt); padding:9px 14px; cursor:pointer;}
-  button.accent{background:var(--accent); color:#fff; border-color:var(--accent);}
+  button.accent{background:var(--brand); color:var(--on-brand); border-color:var(--brand);}
   button.ghost{background:none; color:var(--txt2); font-weight:500;}
   button.mini{padding:4px 9px; font-size:13px; border-radius:9px;}
   .filebtn{display:inline-block;} .filebtn input{display:none;}

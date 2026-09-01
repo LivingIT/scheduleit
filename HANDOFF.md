@@ -33,6 +33,10 @@ tuned interactively; this document is the context to continue in Claude Code.
   today-relative dates). In-app "✎ Redigera" text tool + a standalone form editor both
   export `schedule.json`. Authoring is fully separated from the visitor view; no backend.
 - Packaged as an installable, offline PWA (manifest + service worker + icons).
+- Brand: Living IT orange `#ff8705` (`--brand`, fixed) for fills — badge, "Just nu",
+  download; `--accent` is the theme-adapted orange for small text/detail (`#ff9c3d` dark,
+  `#a85800` light) and the focused-card border/glow ramp. `--on-brand` (`#1c1204`) is the
+  ink on orange fills. Optional event-title line sits above the day header in `--brand`.
 
 ## 3. Source layout — DONE (was: de-duplicate the source)
 
@@ -112,7 +116,7 @@ Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recomp
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v8**.
+  network-first and updates without a bump. Currently at **v9**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -147,13 +151,14 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v8, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v9, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
 ```json
 {
   "version": 1,
+  "title": "Living IT Höstevent 2026",
   "days": [
     { "label": "fre 12 sep", "date": "2026-09-12",
       "slots": [
@@ -163,5 +168,9 @@ Flat repo root, deployed as-is via GitHub Pages:
   ]
 }
 ```
-Text authoring format: day header `# YYYY-MM-DD Label`; slot line
-`time | title | place | people | description` (all but time/title optional).
+`title` is optional — a small event-title line shown above the day header (in the brand
+orange); omit or `""` to hide it.
+
+Text authoring format: optional event title `! Event name` (anywhere, first wins); day
+header `# YYYY-MM-DD Label`; slot line `time | title | place | people | description`
+(all but time/title optional).

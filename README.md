@@ -15,7 +15,7 @@ Besökare matar inte in något. Du redigerar schemat och byter ut `schedule.json
 1. Öppna appen, tryck **✎ Redigera** uppe till vänster.
 2. Skriv/klistra in i formatet `tid | titel | plats | presentatörer | beskrivning`
    (allt utom tid/titel valfritt). Ny dag med `# ÅÅÅÅ-MM-DD Namn` — datumet avgör
-   vilken dag som är "idag".
+   vilken dag som är "idag". Eventtitel högst upp (valfritt) med `! Namn på eventet`.
 3. **Förhandsgranska** för att se det direkt, eller **Ladda ner schedule.json**.
 4. Lägg den nedladdade `schedule.json` i repo-roten (ersätt den gamla) och pusha.
 
