@@ -38,6 +38,10 @@
   #dayhdr{position:fixed; top:calc(62px + env(safe-area-inset-top)); left:0; right:0; text-align:center;
     font-size:18px; font-weight:600; color:var(--txt); z-index:250; pointer-events:none;}
   #dayhdr.no-evt{top:calc(52px + env(safe-area-inset-top));}
+  #dayhdr .ch{color:var(--txt2); font-weight:400; padding:0 13px; display:inline-block;
+    transition:opacity .3s;}
+  #dayhdr .ch.dim{opacity:.2;}
+  #dayhdr .ch.hide{display:none;}
   #stage{position:fixed; inset:0; touch-action:none;}
   .day{position:absolute; inset:0; will-change:transform,opacity; transform-origin:center center;}
   .wrap{position:absolute; left:0; right:0; margin:0 auto; width:calc(100% - 40px); max-width:440px; top:50%; will-change:transform,opacity; transform-origin:center center;}
@@ -249,6 +253,10 @@
   const stage=document.getElementById('stage');
   const evthdr=document.getElementById('evthdr');
   const dayhdr=document.getElementById('dayhdr');
+  // ‹ label › — the day header doubles as the "you can move between days" affordance
+  // (side-swipe is the gesture first-timers miss most).
+  dayhdr.innerHTML='<span class="ch" id="chL">‹</span><span id="dl"></span><span class="ch" id="chR">›</span>';
+  const chL=document.getElementById('chL'), chR=document.getElementById('chR'), dl=document.getElementById('dl');
   function renderEvt(){
     const t=(EVT||'').trim();
     evthdr.textContent=t; evthdr.classList.toggle('show', !!t);
@@ -329,7 +337,10 @@
       cardsByDay[di].dayEl.style.zIndex=String(50-Math.round(ad*10));
       renderDay(di);
     }
-    const nd=days[clampDay(Math.round(dayX))]; dayhdr.textContent=(nd.isToday?'Idag · ':'')+nd.label;
+    const di0=clampDay(Math.round(dayX)), nd=days[di0];
+    dl.textContent=(nd.isToday?'Idag · ':'')+nd.label;
+    chL.classList.toggle('hide', maxDay<1); chR.classList.toggle('hide', maxDay<1);
+    chL.classList.toggle('dim', di0<=0); chR.classList.toggle('dim', di0>=maxDay);
     const home = clampDay(Math.round(dayX))===TODAY
       && Math.abs(vpos[TODAY]-(days[TODAY].nowIndex||0))<0.5 && Math.abs(dayX-TODAY)<0.02;
     nowBtn.classList.toggle('show', !home);
@@ -410,13 +421,27 @@
   function armHint(){ clearTimeout(hintTimer); if(hintShots>=3) return;
     hintTimer=setTimeout(()=>{ showCue(true); hintShots++;
       clearTimeout(hintTimer); hintTimer=setTimeout(()=>{ showCue(false); },4200); },14000); }
+  function dayPeek(amt){
+    if(drag||mode!=='idle') return;
+    const bd=TODAY<maxDay?1:-1;
+    dayX=TODAY+bd*amt; dayTarget=TODAY; dvel=0; mode='daysettle'; ensureLoop();
+  }
+  function vBob(){
+    if(drag||mode!=='idle') return;
+    const base=days[active].nowIndex||0, mx=days[active].slots.length-1;
+    vpos[active]=base+(base<mx?0.5:-0.5); vTarget=base; vvel=0; mode='settle'; ensureLoop();
+  }
   function demoGesture(){
     if(drag||running||mode!=='idle'||scrim.classList.contains('open')) return;
-    const base=days[active].nowIndex||0, mx=days[active].slots.length-1;
-    vpos[active]=base+(base<mx?0.55:-0.55); vTarget=base; vvel=0; mode='settle'; ensureLoop();
-    if(maxDay>0) setTimeout(()=>{ if(drag||mode!=='idle') return;
-      dayX=TODAY+(TODAY<maxDay?0.13:-0.13); dayTarget=TODAY; dvel=0; mode='daysettle'; ensureLoop();
-    },1000);
+    // Lead with the side-swipe — that's the gesture first-timers miss. Peek the
+    // next day well in, let it glide back, a smaller echo, then bob vertically.
+    if(maxDay>0){
+      dayPeek(0.32);
+      setTimeout(()=>dayPeek(0.15), 620);
+      setTimeout(vBob, 1400);
+    } else {
+      vBob();
+    }
   }
 
   // --- gestures ----------------------------------------------------------
