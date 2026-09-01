@@ -26,9 +26,10 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     touch-action:none; -webkit-user-select:none; user-select:none;}
   #top{position:fixed; top:0; left:0; right:0; padding:12px 16px calc(env(safe-area-inset-top));
-    display:flex; justify-content:space-between; align-items:center; z-index:300;}
+    display:flex; justify-content:flex-end; align-items:center; z-index:300;}
   #top button{background:none; border:0.5px solid var(--line); color:var(--txt2);
     border-radius:16px; padding:6px 12px; font-size:12px; touch-action:manipulation;}
+  #impOpen{margin-right:auto;}
   #evthdr{position:fixed; top:calc(44px + env(safe-area-inset-top)); left:0; right:0; text-align:center;
     font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--brand);
     z-index:250; pointer-events:none; padding:0 40px; white-space:nowrap; overflow:hidden;
@@ -64,7 +65,9 @@
     padding:10px 24px calc(28px + env(safe-area-inset-bottom));
     transform:translateY(112%); transition:transform .34s cubic-bezier(.22,.61,.36,1); touch-action:none;}
   #sheet.open{transform:translateY(0); box-shadow:0 -12px 44px rgba(0,0,0,.4);}
-  #sheet .grab{width:38px; height:4px; border-radius:2px; background:var(--line); margin:6px auto 18px;}
+  #sheet .grab{width:38px; height:4px; border-radius:2px; background:var(--line); margin:6px auto 16px;}
+  #sheet .s-day{font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--txt2); margin-bottom:6px;}
   #sheet .s-time{font-variant-numeric:tabular-nums; font-weight:600; color:var(--accent); font-size:16px;}
   #sheet .s-title{font-weight:600; font-size:22px; line-height:1.2; margin:8px 0 4px;}
   #sheet .s-meta{font-size:15px; color:var(--txt2); margin-top:10px; display:flex; gap:8px; align-items:center;}
@@ -99,7 +102,7 @@
 </head>
 <body>
   <div id="top">
-    <button id="impOpen">✎ Redigera</button>
+    <button id="impOpen" hidden>✎ Redigera</button>
     <button id="mute">🔊 tick</button>
   </div>
   <div id="evthdr"></div>
@@ -111,6 +114,7 @@
   <div id="scrim"></div>
   <div id="sheet">
     <div class="grab"></div>
+    <div class="s-day" id="sDay"></div>
     <div class="s-time" id="sTime"></div>
     <div class="s-title" id="sTitle"></div>
     <div class="s-meta" id="sPlaceRow"><span class="dot"></span><span id="sPlace"></span></div>
@@ -286,19 +290,22 @@
       const c=Math.max(0,1-ad), sc=Math.max(0.58,1-ad*0.18);
       // e: a peaked "focus" curve — breaks the tie between two half-centered cards
       // faster than c does, so mid-drag always has one card clearly in front.
-      const e=c*c;
+      // eb also gates it by how centred THIS day is, so the accent border/glow
+      // fades out with the day during a horizontal swipe instead of showing as a
+      // stray orange edge on the next day's peeking card.
+      const e=c*c, eb=e*Math.max(0,1-Math.abs(di-dayX));
       const y=d*SP - cards[i].offsetHeight/2;
       cards[i].style.transform='translateY('+y+'px) scale('+sc+')';
-      cards[i].style.opacity=Math.max(0,1-ad*0.55);
+      cards[i].style.opacity=Math.max(0,1-ad*0.5);
       cards[i].style.zIndex=String(100-Math.round(ad*10));
       const det=cards[i].querySelector('.detail');
       det.style.maxHeight=(c*100)+'px'; det.style.opacity=c;
       cards[i].querySelector('.title').style.fontSize=(17+c*8)+'px';
       cards[i].querySelector('.time').style.fontSize=(16+c*4)+'px';
       const card=cards[i].querySelector('.card');
-      card.style.borderColor='color-mix(in srgb, var(--line-accent) '+Math.round(e*100)+'%, var(--line))';
-      card.style.borderWidth=(0.5+e*1).toFixed(2)+'px';
-      card.style.boxShadow='var(--shadow), 0 8px 24px rgba(var(--accent-rgb),'+(0.16*e).toFixed(3)+')';
+      card.style.borderColor='color-mix(in srgb, var(--line-accent) '+Math.round(eb*100)+'%, var(--line))';
+      card.style.borderWidth=(0.5+eb*1).toFixed(2)+'px';
+      card.style.boxShadow='var(--shadow), 0 8px 24px rgba(var(--accent-rgb),'+(0.16*eb).toFixed(3)+')';
       const b=cards[i].querySelector('.badge'); if(b){ const dd=days[di]; const isNow=dd.isToday&&dd._live&&i===dd.nowIndex; b.style.opacity=isNow?Math.max(0,(c-0.3)/0.7):0; }
     }
   }
@@ -322,12 +329,12 @@
 
   // --- audio / haptics ---------------------------------------------------
   let ac=null,muted=false;
-  function tick(str){
-    if(navigator.vibrate){try{navigator.vibrate(9);}catch(e){}}
+  function tick(str,freq){
+    if(navigator.vibrate){try{navigator.vibrate(Math.max(3,Math.round(9*str)));}catch(e){}}
     if(muted)return;
     try{ if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();
       const o=ac.createOscillator(),g=ac.createGain();
-      o.type='triangle'; o.frequency.value=540;
+      o.type='triangle'; o.frequency.value=freq||540;
       g.gain.setValueAtTime(0.0001,ac.currentTime);
       g.gain.exponentialRampToValueAtTime(0.06*str,ac.currentTime+0.004);
       g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.05);
@@ -336,8 +343,18 @@
   }
   document.getElementById('mute').onclick=function(){muted=!muted;
     this.textContent=muted?'🔇 tyst':'🔊 tick'; this.style.opacity=muted?0.5:1;};
-  function checkDet(){const r=Math.round(vpos[active]);
-    if(r!==lastDet){tick(Math.min(1,Math.abs(vvel)*0.6+0.4)); lastDet=r;}}
+  // Detents: at speed, thin them out and drop volume + pitch so a hard flick reads
+  // as one low "brrr" and only the slow approach ticks crisply. checkDet also runs
+  // inside settle now, so a glide that crosses a slot line still clicks.
+  let detN=0;
+  function checkDet(){
+    const r=Math.round(vpos[active]);
+    if(r===lastDet) return;
+    lastDet=r;
+    const sp=Math.abs(vvel), stride = sp>4.2 ? 3 : sp>2.3 ? 2 : 1;
+    if(stride>1 && (++detN % stride)) return;
+    tick(Math.max(0.28, Math.min(0.9, 0.92 - sp*0.13)), Math.max(300, 540 - sp*42));
+  }
 
   // --- animation loop ----------------------------------------------------
   function rubberV(p,mx){return p<0?p*0.35:(p>mx?mx+(p-mx)*0.35:p);}
@@ -353,6 +370,7 @@
       if(Math.abs(vvel)<0.12){ mode='settle'; vTarget=Math.max(0,Math.min(mx,Math.round(vpos[active]))); vvel=0; }
     } else if(mode==='settle'){
       const diff=vTarget-vpos[active]; vvel+=diff*0.20; vvel*=0.60; vpos[active]+=vvel;
+      checkDet();
       if(Math.abs(diff)<0.002&&Math.abs(vvel)<0.002){ vpos[active]=vTarget; checkDet(); mode='idle'; }
     } else if(mode==='daysettle'){
       const diff=dayTarget-dayX; dvel+=diff*0.16; dvel*=0.62; dayX+=dvel;
@@ -434,16 +452,46 @@
   function openSheet(di, si){
     const day=days[di]; if(!day) return;
     si=Math.max(0,Math.min(day.slots.length-1, si)); const s=day.slots[si];
-    document.getElementById('sTime').textContent=s.time||'';
+    const end = si+1<day.slots.length ? (day.slots[si+1].time||'') : '';
+    document.getElementById('sDay').textContent=(day.isToday?'Idag · ':'')+day.label;
+    document.getElementById('sTime').textContent=(s.time||'')+(s.time&&end?' – '+end:'');
     document.getElementById('sTitle').textContent=s.title||'';
     setRow('sPlaceRow','sPlace', s.place);
     setRow('sPeopleRow','sPeople', s.people);
     const dsc=document.getElementById('sDesc'); dsc.textContent=s.desc||''; dsc.style.display=s.desc?'block':'none';
+    sheet.style.transition=''; sheet.style.transform=''; scrim.style.opacity='';
     scrim.classList.add('open'); sheet.classList.add('open'); hideHint();
   }
-  function closeSheet(){ scrim.classList.remove('open'); sheet.classList.remove('open'); armHint(); }
+  function closeSheet(){
+    sheet.style.transition=''; sheet.style.transform=''; scrim.style.opacity='';
+    scrim.classList.remove('open'); sheet.classList.remove('open'); armHint();
+  }
   scrim.addEventListener('pointerdown',e=>{ e.preventDefault(); closeSheet(); });
   document.getElementById('sClose').onclick=closeSheet;
+  // Swipe the sheet down to dismiss (the grab handle advertises it).
+  let shStartY=0, shPrimed=false, shDrag=false, shCur=0, shVy=0, shLastY=0;
+  sheet.addEventListener('pointerdown',e=>{ shStartY=shLastY=e.clientY; shPrimed=true; shDrag=false; shCur=0; shVy=0; });
+  sheet.addEventListener('pointermove',e=>{
+    if(!shPrimed) return;
+    const dy=e.clientY-shStartY;
+    if(!shDrag){ if(dy>6){ shDrag=true; sheet.style.transition='none'; try{sheet.setPointerCapture(e.pointerId);}catch(_){} } else return; }
+    shCur=Math.max(0,dy); shVy=e.clientY-shLastY; shLastY=e.clientY;
+    sheet.style.transform='translateY('+shCur+'px)';
+    scrim.style.opacity=(0.62*Math.max(0,1-shCur/280)).toFixed(3);
+  });
+  function shEnd(){
+    if(!shPrimed) return; shPrimed=false;
+    if(!shDrag) return;               // was a tap — let the button handle it
+    if(shCur>90 || shVy>7){
+      sheet.style.transition='transform .22s ease'; sheet.style.transform='translateY(112%)';
+      scrim.classList.remove('open');
+      setTimeout(()=>{ sheet.classList.remove('open'); sheet.style.transform=''; sheet.style.transition=''; scrim.style.opacity=''; armHint(); },200);
+    } else {
+      sheet.style.transition=''; sheet.style.transform=''; scrim.style.opacity='';
+    }
+  }
+  sheet.addEventListener('pointerup',shEnd);
+  sheet.addEventListener('pointercancel',shEnd);
 
   // --- JSON load / serialize --------------------------------------------
   function fromJSON(obj){
@@ -480,7 +528,12 @@
 
   // --- author tool -------------------------------------------------------
   const imp=document.getElementById('imp'), impText=document.getElementById('impText'), impErr=document.getElementById('impErr');
-  document.getElementById('impOpen').onclick=()=>{ impText.value=toText(); impErr.textContent=''; imp.classList.add('open'); };
+  const impOpen=document.getElementById('impOpen');
+  // Visitors never see the edit button — it swaps out the schedule. The author
+  // opens it with #edit in the URL (…/scheduleit/#edit).
+  function syncEdit(){ impOpen.hidden = !/^#(edit|redigera)$/i.test(location.hash); }
+  window.addEventListener('hashchange', syncEdit); syncEdit();
+  impOpen.onclick=()=>{ impText.value=toText(); impErr.textContent=''; imp.classList.add('open'); };
   document.getElementById('impCancel').onclick=()=>imp.classList.remove('open');
   document.getElementById('impPreview').onclick=()=>{
     const parsed=parse(impText.value);

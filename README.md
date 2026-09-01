@@ -12,7 +12,8 @@ och tryck-för-detalj. Installerbar och offline-kapabel.
 
 ## Så uppdaterar du schemat
 Besökare matar inte in något. Du redigerar schemat och byter ut `schedule.json`:
-1. Öppna appen, tryck **✎ Redigera** uppe till vänster.
+1. Öppna appen med `#edit` i adressen (`…/scheduleit/#edit`) — då syns **✎ Redigera**
+   uppe till vänster. Utan `#edit` ser besökare ingen redigeringsknapp.
 2. Skriv/klistra in i formatet `tid | titel | plats | presentatörer | beskrivning`
    (allt utom tid/titel valfritt). Ny dag med `# ÅÅÅÅ-MM-DD Namn` — datumet avgör
    vilken dag som är "idag". Eventtitel högst upp (valfritt) med `! Namn på eventet`.
@@ -23,7 +24,7 @@ Appen hämtar `schedule.json` vid start (annars ett inbyggt exempel). Varje dag 
 ett **datum**; appen jämför datum + klockslag med enhetens tid för att avgöra vilken
 dag som är idag och vilken punkt som pågår. Ligger inget datum på idag öppnas närmaste
 dag utan "pågår nu"-märke.
-(Redigera-vyn är ett författarverktyg – i en skarp version tar du bort knappen.)
+(Redigera-vyn är ett författarverktyg och är gömd för besökare bakom `#edit`.)
 
 
 ## Alternativ: editor.html (formulär i stället för text)

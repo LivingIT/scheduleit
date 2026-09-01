@@ -20,18 +20,23 @@ tuned interactively; this document is the context to continue in Claude Code.
 ## 2. Current state — what works
 
 - Vertical "ratt" gesture: drag to morph between slots, flick for momentum, detent tick
-  (audio + Android vibration) per slot, soft ("cloud") landing.
+  (audio + Android vibration) per slot, soft ("cloud") landing. Detents thin out and drop
+  in volume + pitch at speed, so a hard flick is one low "brrr" and only the slow approach
+  ticks crisply.
 - Horizontal day switching: swipe LEFT = next (later) day; future days sit to the right.
   Axis-locked so vertical/horizontal never fight. Per-day vertical scroll position is
-  remembered. Day transition uses a subtle scale+fade depth effect.
+  remembered. Day transition uses a subtle scale+fade depth effect; the focused-card accent
+  border/glow fades with day-centeredness so the peeking next day shows no stray edge.
 - "Just nu" button (accent-filled): springs home across BOTH axes (right day + right slot).
-- Tap a resting focused card → detail bottom-sheet (time/place/people/description).
-  Tap during momentum = stops it (does not open) — iOS-scroll semantics.
+- Tap a resting focused card → detail bottom-sheet. Always carries day label + time range
+  (start–next start) + title, plus place/people/description when present. Swipe the sheet
+  down (or tap scrim / "Stäng") to dismiss. Tap during momentum = stops it — iOS-scroll.
 - Date-aware "now": each day has a date; app compares date + clock to the device time to
   pick today's day and the ongoing slot, refreshed every 60s. No manual "today" flag.
 - Data pipeline: app fetches `schedule.json` at start (falls back to a built-in demo with
-  today-relative dates). In-app "✎ Redigera" text tool + a standalone form editor both
-  export `schedule.json`. Authoring is fully separated from the visitor view; no backend.
+  today-relative dates). Author tools: in-app text tool behind `#edit` in the URL (visitors
+  never see the button) + a standalone form editor; both export `schedule.json`. Authoring
+  is fully separated from the visitor view; no backend.
 - Packaged as an installable, offline PWA (manifest + service worker + icons).
 - Brand: Living IT orange `#ff8705` (`--brand`, fixed) for fills — badge, "Just nu",
   download; `--accent` is the theme-adapted orange for small text/detail (`#ff9c3d` dark,
@@ -79,8 +84,12 @@ Vertical ("ratt"):
 - fling friction: `vvel *= Math.pow(0.24, dt)`.
 - fling → settle handoff: when `|vvel| < 0.12`, then **`vvel = 0`** (critical — see §7).
 - settle ("cloud landing", overdamped, no overshoot): `vvel += diff*0.20; vvel *= 0.60`.
-- card morph: `scale = max(0.6, 1 - ad*0.15)`, `opacity = max(0, 1 - ad*0.4)`,
-  detail `maxHeight = c*100px`, title `17+c*8 px`, time `16+c*4 px` (c = centeredness).
+  `checkDet()` runs each settle frame too, so a glide across a slot line still clicks.
+- card morph (`c = 1-ad` centeredness; `e = c²` peaked focus; `eb = e·dayCenteredness`):
+  `scale = max(0.58, 1 - ad*0.18)`, `opacity = max(0, 1 - ad*0.5)`, detail `maxHeight =
+  c*100px`, title `17+c*8 px`, time `16+c*4 px`; border `color-mix(line-accent eb%, line)`
+  width `0.5+eb px`; accent glow `rgba(--accent-rgb, 0.16·eb)`. `eb` (not `e`) gates the
+  accent so the peeking next day shows no orange edge.
 
 Horizontal (days):
 - `SPX` day spacing: `W*0.90` — MUST be identical in `render()` and `pointermove`, or the
@@ -91,7 +100,9 @@ Horizontal (days):
 "Now" button (`gonow`, both axes at once): horizontal `dvel += dd*0.30; dvel *= 0.62`,
 vertical `vvel += pd*0.5; vvel *= 0.6`.
 
-Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recompute 60s.
+Feedback: detent = `navigator.vibrate(≈9·str)` + WebAudio triangle blip. At speed
+(`|vvel|`) it thins (`stride` 1→2→3 above ~2.3 / ~4.2), quietens (`str = 0.92 - sp*0.13`,
+floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 
 ## 6. Decisions + rationale
 
@@ -116,7 +127,7 @@ Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recomp
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v9**.
+  network-first and updates without a bump. Currently at **v10**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -137,13 +148,17 @@ Feedback: detent = `navigator.vibrate(9)` + WebAudio 540Hz triangle blip; recomp
 
 ## 9. Roadmap (suggested order)
 
-1. De-duplicate the source (§3); create the GitHub repo; enable Pages; verify install +
-   offline on a real device.
-2. Swipe-down-to-dismiss on the detail sheet.
-3. Optional dev tuning panel (hidden) to adjust the §5 constants live instead of by edit.
-4. Fixed event-timezone support.
-5. Multi-track selector (uses the existing `trackId`), keeping single-track-per-view.
-6. Only if real dynamism is needed: a backend + arbitrary schedule/PDF import (LLM-based).
+Done: source de-dup (§3); repo + Pages live; brand pass (orange + depth/shadows, morph
+focus, hint recovery); event title; swipe-down-to-dismiss; detent riffle at speed;
+edit-button gated behind `#edit`. Still to verify on a real device: install + offline, and
+the feel of the fling coast (`pow(0.24,dt)`) and the `opacity 1-ad*0.5` neighbour falloff.
+
+1. Optional dev tuning panel (hidden) to adjust the §5 constants live instead of by edit.
+2. Fixed event-timezone support.
+3. Multi-track selector (uses the existing `trackId`), keeping single-track-per-view.
+4. Event-title field in the standalone `editor.html` form (in-app text tool already has
+   it via `! Name`).
+5. Only if real dynamism is needed: a backend + arbitrary schedule/PDF import (LLM-based).
 
 ## 10. Files
 
@@ -151,7 +166,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v9, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v10, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
