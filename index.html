@@ -60,7 +60,7 @@
     box-shadow:0 8px 24px rgba(var(--brand-rgb),.4); pointer-events:none; touch-action:manipulation;}
   #nowBtn.show{opacity:1; pointer-events:auto;}
   #hint{position:fixed; left:0; right:0; bottom:calc(84px + env(safe-area-inset-bottom)); text-align:center;
-    color:var(--txt2); font-size:12px; z-index:250; transition:opacity .5s; pointer-events:none;}
+    color:var(--txt2); font-size:12px; z-index:250; opacity:0; transition:opacity .5s; pointer-events:none;}
   #swipecue{position:fixed; left:0; right:0; bottom:calc(108px + env(safe-area-inset-bottom));
     display:flex; justify-content:center; z-index:250; pointer-events:none; opacity:0; transition:opacity .5s;}
   #swipecue.show{opacity:.75;}
@@ -269,9 +269,14 @@
   // --- state -------------------------------------------------------------
   let vpos=[], dayX=0, active=0, vvel=0, dvel=0, W=window.innerWidth;
   const clampDay=v=>Math.max(0,Math.min(maxDay,v));
-  let drag=false, axis='none', pressResting=false;
+  let drag=false, axis='none', pressResting=false, axisT=0, axisLock=false;
   let sX=0,sY=0,sVpos=0,sDayX=0,lX=0,lY=0,lT=0,raf=null,mode='idle',lastT=0,running=false;
   let vTarget=0, dayTarget=0, lastDet=0;
+  let taught=false, didV=false, didH=false;   // has the user demonstrably learned the gestures?
+  function markLearned(ax){
+    if(ax==='v') didV=true; else if(ax==='h') didH=true;
+    if(didV&&didH&&!taught){ taught=true; try{ localStorage.setItem('sit_learned','1'); }catch(e){} }
+  }
 
   function build(){
     stage.innerHTML=''; cardsByDay=[];
@@ -310,7 +315,9 @@
       // eb also gates it by how centred THIS day is, so the accent border/glow
       // fades out with the day during a horizontal swipe instead of showing as a
       // stray orange edge on the next day's peeking card.
-      const e=c*c, eb=e*Math.max(0,1-Math.abs(di-dayX));
+      // eb gate is steep (×1.8) so the accent border/glow is gone until a day is
+      // >70% centred, then "arrives" as you land — mid-swipe neither day is lit.
+      const e=c*c, eb=e*Math.max(0,1-Math.abs(di-dayX)*1.8);
       // Centre via CSS translateY(-50%) — no per-frame offsetHeight read (that
       // forced a layout flush every card every frame and made tall / 2-line
       // cards judder). Font size is fixed now too, so text never reflows mid-
@@ -335,8 +342,8 @@
       if(Math.abs(rel) > 1.7){ cardsByDay[di].dayEl.style.visibility='hidden'; continue; }
       cardsByDay[di].dayEl.style.visibility='visible';
       const ad=Math.abs(rel);
-      cardsByDay[di].dayEl.style.transform='translateX('+(rel*SPX)+'px) scale('+Math.max(0.72,1-ad*0.08)+')';
-      cardsByDay[di].dayEl.style.opacity=Math.max(0,1-ad*0.35);
+      cardsByDay[di].dayEl.style.transform='translateX('+(rel*SPX)+'px) scale('+Math.max(0.7,1-ad*0.12)+')';
+      cardsByDay[di].dayEl.style.opacity=Math.max(0,1-ad*0.42);
       cardsByDay[di].dayEl.style.zIndex=String(50-Math.round(ad*10));
       renderDay(di);
     }
@@ -424,7 +431,7 @@
   let hintTimer=null, hintShots=0;
   function showCue(on){ hint.style.opacity=on?0.75:0; swipecue.classList.toggle('show',on); }
   function hideHint(){ showCue(false); clearTimeout(hintTimer); }
-  function armHint(){ clearTimeout(hintTimer); if(hintShots>=3) return;
+  function armHint(){ clearTimeout(hintTimer); if(taught||hintShots>=3) return;
     hintTimer=setTimeout(()=>{ showCue(true); hintShots++;
       clearTimeout(hintTimer); hintTimer=setTimeout(()=>{ showCue(false); },4200); },14000); }
   function dayPeek(amt){
@@ -456,15 +463,30 @@
     pressResting = (mode==='idle' && !running);
     if(raf){cancelAnimationFrame(raf);raf=null;} running=false;
     dayX=clampDay(Math.round(dayX)); active=clampDay(Math.round(dayX));
-    drag=true; mode='drag'; axis='none'; stage.setPointerCapture(e.pointerId);
+    drag=true; mode='drag'; axis='none'; axisLock=false; axisT=0; stage.setPointerCapture(e.pointerId);
     sX=e.clientX; sY=e.clientY; sVpos=vpos[active]; sDayX=dayX;
     lX=e.clientX; lY=e.clientY; lT=performance.now(); vvel=0; dvel=0;
     lastDet=Math.round(vpos[active]); hideHint();
   });
   stage.addEventListener('pointermove',e=>{
     if(!drag)return;
-    const dx=e.clientX-sX, dy=e.clientY-sY;
-    if(axis==='none'){ if(Math.abs(dx)>8||Math.abs(dy)>8) axis=(Math.abs(dx)>Math.abs(dy))?'h':'v'; else return; }
+    let dx=e.clientX-sX, dy=e.clientY-sY;
+    if(axis==='none'){
+      if(Math.abs(dx)>8||Math.abs(dy)>8){ axis=(Math.abs(dx)>Math.abs(dy))?'h':'v'; axisT=performance.now(); }
+      else return;
+    }
+    // Grace window: a loose diagonal swipe locks fast but wrong. For the first
+    // ~140ms / 26px let a clearly dominant new direction still flip the axis.
+    if(!axisLock){
+      const along=axis==='h'?Math.abs(dx):Math.abs(dy), across=axis==='h'?Math.abs(dy):Math.abs(dx);
+      if(along>26 || performance.now()-axisT>140){ axisLock=true; }
+      else if(across>along*1.7 && across>12){
+        axis=axis==='h'?'v':'h';
+        if(axis==='h') vpos[active]=sVpos; else dayX=sDayX;   // undo the wrong-axis nudge
+        sX=e.clientX; sY=e.clientY; dx=0; dy=0;                // re-baseline from here
+        render();
+      }
+    }
     const n=performance.now(),tdt=n-lT, SPX=W*0.90;
     if(axis==='v'){
       const mx=days[active].slots.length-1;
@@ -479,6 +501,7 @@
   function end(){
     if(!drag)return; drag=false;
     if(axis==='v'){
+      markLearned('v');
       const mx=days[active].slots.length-1;
       if(Math.abs(vvel)>0.8){ mode='fling'; }          // a real flick → momentum
       else {                                           // slow drag → glide straight
@@ -488,6 +511,7 @@
       ensureLoop();
     }
     else if(axis==='h'){
+      markLearned('h');
       const base=active; let t=Math.round(dayX + Math.max(-0.6,Math.min(0.6,dvel*0.2)));
       t=Math.max(base-1,Math.min(base+1,t)); dayTarget=clampDay(t); dvel=0; mode='daysettle'; ensureLoop();
     } else {
@@ -616,11 +640,14 @@
     recompute(); build(); resetState(); computeLayout(); render(); renderEvt();
     setInterval(()=>{ recompute(); render(); }, 60000);   // keep "nu" current over time
     let firstVisit=true;
-    try{ firstVisit=!localStorage.getItem('sit_seen'); localStorage.setItem('sit_seen','1'); }catch(e){}
-    showCue(true);
-    setTimeout(()=>{ if(!drag) showCue(false); }, firstVisit?6500:4500);
-    if(firstVisit) setTimeout(demoGesture, 1100);
-    armHint();
+    try{ firstVisit=!localStorage.getItem('sit_seen'); localStorage.setItem('sit_seen','1');
+      taught=!!localStorage.getItem('sit_learned'); }catch(e){}
+    if(!taught){                                    // someone who's used both gestures gets nothing
+      showCue(true);
+      setTimeout(()=>{ if(!drag) showCue(false); }, firstVisit?6500:4500);
+      armHint();
+    }
+    if(firstVisit && !taught) setTimeout(demoGesture, 1100);
   })();
 })();
 </script>

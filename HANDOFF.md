@@ -37,7 +37,13 @@ tuned interactively; this document is the context to continue in Claude Code.
   up-chevron `#swipecue` + text hint (re-surfaced after ~14s idle, capped 3×), and
   `demoGesture()` — a one-time self-demo on the first visit (`localStorage sit_seen`) that
   leads with a prominent next-day peek (0.32 then 0.15) and finishes with a vertical bob.
-  First touch dismisses the cue/hint.
+  First touch dismisses the cue/hint. Once the user has done **both** a vertical and a
+  horizontal drag (`markLearned`), `localStorage sit_learned` is set and the cue / hint /
+  demo never appear again — so a daily PWA user isn't nagged every launch.
+- Axis lock has a grace window: it locks on the 8px threshold as before, but for the first
+  ~140ms / 26px a clearly dominant (`>1.7×`) perpendicular move still flips the axis (and
+  undoes the wrong-axis nudge + re-baselines). Loose diagonal swipes — which real users do
+  — no longer stick to the wrong axis.
 - Date-aware "now": each day has a date; app compares date + clock to the device time to
   pick today's day and the ongoing slot, refreshed every 60s. No manual "today" flag.
 - Data pipeline: app fetches `schedule.json` at start (falls back to a built-in demo with
@@ -108,7 +114,10 @@ Horizontal (days):
 - `SPX` day spacing: `W*0.90` — MUST be identical in `render()` and `pointermove`, or the
   active day stops tracking the thumb 1:1.
 - daysettle: `dvel += diff*0.16; dvel *= 0.62` (gentle glide, no bounce).
-- day depth: `scale = max(0.72, 1 - ad*0.08)`, `opacity = max(0, 1 - ad*0.35)`.
+- day depth: `scale = max(0.7, 1 - ad*0.12)`, `opacity = max(0, 1 - ad*0.42)` — deeper than
+  before so a swipe reads as layered movement, not two flat panels sliding.
+- accent gate: `eb = e · max(0, 1 - |di-dayX|·1.8)` — the focused-card border/glow is gone
+  mid-swipe and only "arrives" as a day passes ~70% centred, so there's one clear focus.
 
 "Now" button (`gonow`, both axes at once): horizontal `dvel += dd*0.30; dvel *= 0.62`,
 vertical `vvel += pd*0.5; vvel *= 0.6`.
@@ -142,7 +151,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v13**.
+  network-first and updates without a bump. Currently at **v14**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -164,7 +173,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 ## 9. Roadmap (suggested order)
 
 Done: source de-dup (§3); repo + Pages live; brand pass (orange + depth/shadows, morph
-focus, hint recovery); event title; swipe-down-to-dismiss; detent riffle; first-run demo (leads w. side-swipe) + day-header ‹›;
+focus, hint recovery); event title; swipe-down-to-dismiss; detent riffle; first-run demo + day-header ‹›; axis-lock grace window; "learned" suppresses the teachers;
 edit-button gated behind `#edit`. Still to verify on a real device: install + offline, and
 the feel of the fling coast (`pow(0.24,dt)`) and the `opacity 1-ad*0.5` neighbour falloff.
 
@@ -181,7 +190,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v13, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v14, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
