@@ -272,7 +272,7 @@
   let drag=false, axis='none', pressResting=false, axisT=0, axisLock=false;
   let sX=0,sY=0,sVpos=0,sDayX=0,lX=0,lY=0,lT=0,raf=null,mode='idle',lastT=0,running=false;
   let vTarget=0, dayTarget=0, lastDet=0;
-  let taught=false, didV=false, didH=false;   // has the user demonstrably learned the gestures?
+  let taught=false, didV=false, didH=false, touched=false;   // learned the gestures? touched the screen at all?
   function markLearned(ax){
     if(ax==='v') didV=true; else if(ax==='h') didH=true;
     if(didV&&didH&&!taught){ taught=true; try{ localStorage.setItem('sit_learned','1'); }catch(e){} }
@@ -445,19 +445,23 @@
     vpos[active]=base+(base<mx?0.5:-0.5); vTarget=base; vvel=0; mode='settle'; ensureLoop();
   }
   function demoGesture(){
-    if(drag||running||mode!=='idle'||scrim.classList.contains('open')) return;
+    // Never play over someone who's already engaged — a slow schedule.json fetch
+    // can push boot (and this timer) past a first tap/drag.
+    if(touched||drag||running||mode!=='idle'||scrim.classList.contains('open')) return;
     // Lead with the side-swipe — that's the gesture first-timers miss. Peek the
     // next day well in, let it glide back, a smaller echo, then bob vertically.
     if(maxDay>0){
       dayPeek(0.32);
-      setTimeout(()=>dayPeek(0.15), 620);
-      setTimeout(vBob, 1400);
+      setTimeout(()=>{ if(!touched) dayPeek(0.15); }, 620);
+      setTimeout(()=>{ if(!touched) vBob(); }, 1400);
     } else {
       vBob();
     }
   }
 
   // --- gestures ----------------------------------------------------------
+  // any real touch anywhere counts as "engaged" (guards demoGesture against a late boot)
+  addEventListener('pointerdown',()=>{ touched=true; },{once:true,capture:true});
   stage.addEventListener('pointerdown',e=>{
     if(ac&&ac.state==='suspended')ac.resume();
     pressResting = (mode==='idle' && !running);
@@ -635,17 +639,23 @@
   window.addEventListener('resize',()=>{ W=window.innerWidth; computeLayout(); render(); });
   (async function boot(){
     let data=null;
-    try{ const r=await fetch('./schedule.json',{cache:'no-store'}); if(r.ok) data=fromJSON(await r.json()); }catch(e){}
+    try{ // 4s cap so a hung venue-wifi request can't leave the app blank
+      const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),4000);
+      const r=await fetch('./schedule.json',{cache:'no-store',signal:ctl.signal}); clearTimeout(to);
+      if(r.ok) data=fromJSON(await r.json());
+    }catch(e){}
     if(data) days=data;                 // otherwise keep built-in demo fallback
     recompute(); build(); resetState(); computeLayout(); render(); renderEvt();
     setInterval(()=>{ recompute(); render(); }, 60000);   // keep "nu" current over time
     let firstVisit=true;
     try{ firstVisit=!localStorage.getItem('sit_seen'); localStorage.setItem('sit_seen','1');
       taught=!!localStorage.getItem('sit_learned'); }catch(e){}
-    if(!taught){                                    // someone who's used both gestures gets nothing
-      showCue(true);
-      setTimeout(()=>{ if(!drag) showCue(false); }, firstVisit?6500:4500);
-      armHint();
+    if(!taught){
+      armHint();                                     // idle safety net stays either way
+      if(!touched){                                  // but skip the intro splash if they've already engaged
+        showCue(true);
+        setTimeout(()=>{ if(!drag) showCue(false); }, firstVisit?6500:4500);
+      }
     }
     if(firstVisit && !taught) setTimeout(demoGesture, 1100);
   })();

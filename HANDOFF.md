@@ -37,19 +37,23 @@ tuned interactively; this document is the context to continue in Claude Code.
   up-chevron `#swipecue` + text hint (re-surfaced after ~14s idle, capped 3×), and
   `demoGesture()` — a one-time self-demo on the first visit (`localStorage sit_seen`) that
   leads with a prominent next-day peek (0.32 then 0.15) and finishes with a vertical bob.
-  First touch dismisses the cue/hint. Once the user has done **both** a vertical and a
-  horizontal drag (`markLearned`), `localStorage sit_learned` is set and the cue / hint /
-  demo never appear again — so a daily PWA user isn't nagged every launch.
+  First touch dismisses the cue/hint. The very first `pointerdown` anywhere sets `touched`;
+  demoGesture and the intro cue both bail if it's set, so a slow `schedule.json` fetch that
+  pushes boot past a first tap can't play the demo over an engaged user (the idle `armHint`
+  safety net still runs). Once the user has done **both** a vertical and a horizontal drag
+  (`markLearned`), `localStorage sit_learned` is set and the cue / hint / demo never appear
+  again — so a daily PWA user isn't nagged every launch.
 - Axis lock has a grace window: it locks on the 8px threshold as before, but for the first
   ~140ms / 26px a clearly dominant (`>1.7×`) perpendicular move still flips the axis (and
   undoes the wrong-axis nudge + re-baselines). Loose diagonal swipes — which real users do
   — no longer stick to the wrong axis.
 - Date-aware "now": each day has a date; app compares date + clock to the device time to
   pick today's day and the ongoing slot, refreshed every 60s. No manual "today" flag.
-- Data pipeline: app fetches `schedule.json` at start (falls back to a built-in demo with
-  today-relative dates). Author tools: in-app text tool behind `#edit` in the URL (visitors
-  never see the button) + a standalone form editor; both export `schedule.json`. Authoring
-  is fully separated from the visitor view; no backend.
+- Data pipeline: app fetches `schedule.json` at start with a **4s AbortController cap** (a
+  hung venue-wifi request can't leave the screen blank — it falls back to the built-in demo
+  with today-relative dates). Author tools: in-app text tool behind `#edit` in the URL
+  (visitors never see the button) + a standalone form editor; both export `schedule.json`.
+  Authoring is fully separated from the visitor view; no backend.
 - Packaged as an installable, offline PWA (manifest + service worker + icons).
 - Brand: Living IT orange `#ff8705` (`--brand`, fixed) for fills — badge, "Just nu",
   download; `--accent` is the theme-adapted orange for small text/detail (`#ff9c3d` dark,
@@ -151,7 +155,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v14**.
+  network-first and updates without a bump. Currently at **v15**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -190,7 +194,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v14, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v15, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
