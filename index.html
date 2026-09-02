@@ -44,12 +44,13 @@
   #dayhdr .ch.hide{display:none;}
   #stage{position:fixed; inset:0; touch-action:none;}
   .day{position:absolute; inset:0; will-change:transform,opacity; transform-origin:center center;}
-  .wrap{position:absolute; left:0; right:0; margin:0 auto; width:calc(100% - 40px); max-width:440px; top:50%; will-change:transform,opacity; transform-origin:center center;}
+  .wrap{position:absolute; left:0; right:0; margin:0 auto; width:calc(100% - 40px); max-width:440px; top:50%;
+    will-change:transform,opacity; transform-origin:center center; contain:layout;}
   .card{background:var(--card); border:0.5px solid var(--line); border-radius:20px; padding:20px 22px;
     box-shadow:var(--shadow);}
-  .time{font-variant-numeric:tabular-nums; font-weight:600; color:var(--accent); font-size:16px;}
+  .time{font-variant-numeric:tabular-nums; font-weight:600; color:var(--accent); font-size:17px;}
   .badge{font-size:11px; font-weight:600; color:var(--on-brand); background:var(--brand); padding:3px 10px; border-radius:20px; margin-left:10px; opacity:0;}
-  .title{font-weight:600; line-height:1.25; margin-top:8px; font-size:17px;}
+  .title{font-weight:600; line-height:1.25; margin-top:8px; font-size:22px;}
   .detail{overflow:hidden; max-height:0; opacity:0;}
   .row{font-size:14px; color:var(--txt2); margin-top:8px; display:flex; gap:7px; align-items:center;}
   .dot{width:5px; height:5px; border-radius:50%; background:var(--txt2); flex:none;}
@@ -303,21 +304,23 @@
       const d=i-vp, ad=Math.abs(d);
       if(ad>2.8){cards[i].style.display='none'; continue;}
       cards[i].style.display='block';
-      const c=Math.max(0,1-ad), sc=Math.max(0.58,1-ad*0.18);
+      const c=Math.max(0,1-ad), sc=Math.max(0.56,1-ad*0.2);
       // e: a peaked "focus" curve — breaks the tie between two half-centered cards
       // faster than c does, so mid-drag always has one card clearly in front.
       // eb also gates it by how centred THIS day is, so the accent border/glow
       // fades out with the day during a horizontal swipe instead of showing as a
       // stray orange edge on the next day's peeking card.
       const e=c*c, eb=e*Math.max(0,1-Math.abs(di-dayX));
-      const y=d*SP - cards[i].offsetHeight/2;
-      cards[i].style.transform='translateY('+y+'px) scale('+sc+')';
-      cards[i].style.opacity=Math.max(0,1-ad*0.5);
+      // Centre via CSS translateY(-50%) — no per-frame offsetHeight read (that
+      // forced a layout flush every card every frame and made tall / 2-line
+      // cards judder). Font size is fixed now too, so text never reflows mid-
+      // scroll; the card's own scale() carries the zoom.
+      const off=d*SP;
+      cards[i].style.transform='translateY('+(off>=0?'calc(-50% + '+off+'px)':'calc(-50% - '+(-off)+'px)')+') scale('+sc.toFixed(4)+')';
+      cards[i].style.opacity=Math.max(0,1-ad*0.5).toFixed(3);
       cards[i].style.zIndex=String(100-Math.round(ad*10));
       const det=cards[i].querySelector('.detail');
-      det.style.maxHeight=(c*100)+'px'; det.style.opacity=c;
-      cards[i].querySelector('.title').style.fontSize=(17+c*8)+'px';
-      cards[i].querySelector('.time').style.fontSize=(16+c*4)+'px';
+      det.style.maxHeight=(c*110)+'px'; det.style.opacity=c.toFixed(3);
       const card=cards[i].querySelector('.card');
       card.style.borderColor='color-mix(in srgb, var(--line-accent) '+Math.round(eb*100)+'%, var(--line))';
       card.style.borderWidth=(0.5+eb*1).toFixed(2)+'px';
@@ -386,7 +389,10 @@
       vpos[active]+=vvel*dt; vvel*=Math.pow(0.24,dt);
       if(vpos[active]<-0.4){vpos[active]=-0.4;vvel=0;} if(vpos[active]>mx+0.4){vpos[active]=mx+0.4;vvel=0;}
       checkDet();
-      if(Math.abs(vvel)<0.12){ mode='settle'; vTarget=Math.max(0,Math.min(mx,Math.round(vpos[active]))); vvel=0; }
+      // Hand off to the spring earlier (0.35 not 0.12) so a flick doesn't creep
+      // for the last half-second; seed the spring with the residual (converted
+      // per-sec → per-frame) so there's no seam at the handoff.
+      if(Math.abs(vvel)<0.35){ mode='settle'; vTarget=Math.max(0,Math.min(mx,Math.round(vpos[active]+vvel*0.4))); vvel*=0.016; }
     } else if(mode==='settle'){
       const diff=vTarget-vpos[active]; vvel+=diff*0.20; vvel*=0.60; vpos[active]+=vvel;
       checkDet();
@@ -472,7 +478,15 @@
   });
   function end(){
     if(!drag)return; drag=false;
-    if(axis==='v'){ mode='fling'; ensureLoop(); }
+    if(axis==='v'){
+      const mx=days[active].slots.length-1;
+      if(Math.abs(vvel)>0.8){ mode='fling'; }          // a real flick → momentum
+      else {                                           // slow drag → glide straight
+        vTarget=Math.max(0,Math.min(mx,Math.round(vpos[active]+vvel*0.28))); // let a gentle drag carry a little
+        vvel*=0.016; mode='settle';                    // seed the spring, no fling creep, no seam
+      }
+      ensureLoop();
+    }
     else if(axis==='h'){
       const base=active; let t=Math.round(dayX + Math.max(-0.6,Math.min(0.6,dvel*0.2)));
       t=Math.max(base-1,Math.min(base+1,t)); dayTarget=clampDay(t); dvel=0; mode='daysettle'; ensureLoop();

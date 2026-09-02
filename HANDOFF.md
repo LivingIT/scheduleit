@@ -89,14 +89,20 @@ All logic is one IIFE in a `<script>` at the bottom of the HTML. Key pieces:
 Vertical ("ratt"):
 - `SP` slot spacing: 150 on mobile; `max(160, min(230, innerHeight*0.20))` on wide screens.
 - fling friction: `vvel *= Math.pow(0.24, dt)`.
-- fling → settle handoff: when `|vvel| < 0.12`, then **`vvel = 0`** (critical — see §7).
+- release routing (`end()`): `|vvel| > 0.8` (per-sec) → `fling` (momentum); otherwise skip
+  the fling and go straight to `settle`, target `round(vpos + vvel*0.28)`, seeded
+  `vvel *= dt` — so a slow drag lands crisply instead of creeping through a low-speed fling.
+- fling → settle handoff: when `|vvel| < 0.35`, hand to the spring seeded with `vvel *= dt`
+  (per-sec → per-frame; see §7) so a flick doesn't crawl the last half-second.
 - settle ("cloud landing", overdamped, no overshoot): `vvel += diff*0.20; vvel *= 0.60`.
   `checkDet()` runs each settle frame too, so a glide across a slot line still clicks.
-- card morph (`c = 1-ad` centeredness; `e = c²` peaked focus; `eb = e·dayCenteredness`):
-  `scale = max(0.58, 1 - ad*0.18)`, `opacity = max(0, 1 - ad*0.5)`, detail `maxHeight =
-  c*100px`, title `17+c*8 px`, time `16+c*4 px`; border `color-mix(line-accent eb%, line)`
-  width `0.5+eb px`; accent glow `rgba(--accent-rgb, 0.16·eb)`. `eb` (not `e`) gates the
-  accent so the peeking next day shows no orange edge.
+- card morph (`c = 1-ad`; `e = c²` peaked focus; `eb = e·dayCenteredness`):
+  `scale = max(0.56, 1 - ad*0.2)`, `opacity = max(0, 1 - ad*0.5)`, detail `maxHeight =
+  c*110px`; border `color-mix(line-accent eb%, line)` width `0.5+eb px`; accent glow
+  `rgba(--accent-rgb, 0.16·eb)`. `eb` (not `e`) gates the accent so the peeking next day
+  shows no orange edge. **Font size is fixed** (title 22, time 17) and cards are centred
+  with CSS `translateY(-50%)` — never read `offsetHeight` per frame and never animate
+  font-size: both made tall / 2-line cards judder (forced layout + text reflow every frame).
 
 Horizontal (days):
 - `SPX` day spacing: `W*0.90` — MUST be identical in `render()` and `pointermove`, or the
@@ -127,14 +133,16 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 
 ## 7. Gotchas that will bite
 
-- **Velocity unit reset**: fling velocity is per-second (`*dt`); settle springs are
-  per-frame. Handing residual velocity into a settle without zeroing it kicks the spring
-  and causes visible shake. Always `vvel/dvel = 0` when entering a spring phase.
+- **Velocity units**: fling velocity is per-second (`*dt`); settle springs are per-frame.
+  Handing a per-second residual straight into a per-frame spring kicks it. Convert:
+  `vvel *= dt` (≈`*0.016`) when entering a spring — never pass it raw, and don't just
+  zero it either (that reintroduces the drag→settle seam the routing in §5 removes).
+- **No per-frame layout reads / font-size animation on the cards** (§5) — both juddered.
 - **Single loop invariant**: never run two rAF loops. Interrupt = cancel + set mode.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v12**.
+  network-first and updates without a bump. Currently at **v13**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -173,7 +181,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v12, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v13, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
