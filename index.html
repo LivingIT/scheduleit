@@ -9,20 +9,34 @@
     /* Living IT brand orange (#ff8705). --brand is the fixed fill, --accent adapts
        to the theme for use as small text / detail so it stays legible. */
     --brand:#ff8705; --brand-rgb:255,135,5; --on-brand:#1c1204;
-    --bg:#0a0b0d; --card:#1c1e22; --card2:#24272c; --line:#33373d;
+    --bg:#0f0d09; --card:#1c1e22; --card2:#24272c; --line:#33373d;
     --line-accent:#ff8705; --txt:#f2f3f5; --txt2:#9aa0a8; --accent:#ff9c3d; --accent-rgb:255,156,61;
     --accent-bg:#2a1c08;
     --shadow:0 10px 30px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.35);
+    /* background treatment: warm ground + a soft centre stage-light + brand glow.
+       Each layer is barely there; together the empty space around the focused
+       card reads as a lit surface instead of a void. Grain (on body) adds tooth. */
+    --stagefx:
+      radial-gradient(122% 44% at 50% 44%, rgba(255,150,60,.075), rgba(255,150,60,0) 74%),
+      linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(255,255,255,.022) 46%, rgba(0,0,0,.42) 100%);
   }
   @media (prefers-color-scheme: light){
-    :root{ --bg:#ececea; --card:#ffffff; --card2:#ffffff; --line:#dcdcd6;
+    :root{ --bg:#eeebe2; --card:#ffffff; --card2:#ffffff; --line:#dcdcd6;
       --line-accent:#e0740c; --txt:#16181b; --txt2:#6b7078; --accent:#a85800; --accent-rgb:180,94,0;
       --accent-bg:#ffe8d2;
-      --shadow:0 8px 22px rgba(20,24,40,.12), 0 1px 4px rgba(20,24,40,.08); }
+      --shadow:0 8px 22px rgba(20,24,40,.12), 0 1px 4px rgba(20,24,40,.08);
+      /* light mode isn't the "too dark" problem — keep it flat, just the grain */
+      --stagefx:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0)),linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0)); }
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; height:100%; overflow:hidden; overscroll-behavior:none;
-    background:var(--bg); color:var(--txt);
+    background:
+      url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.9'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E") repeat,
+      var(--stagefx),
+      var(--bg);
+    background-size:140px 140px, 100% 100%, 100% 100%, auto;
+    background-blend-mode:soft-light, normal, normal, normal;
+    color:var(--txt);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     touch-action:none; -webkit-user-select:none; user-select:none;}
   #top{position:fixed; top:0; left:0; right:0; padding:12px 16px calc(env(safe-area-inset-top));
@@ -105,7 +119,7 @@
   #impErr{color:#ff6b6b; font-size:13px; min-height:18px; margin-top:8px;}
 </style>
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#0a0b0d">
+  <meta name="theme-color" content="#0f0d09">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

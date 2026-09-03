@@ -59,6 +59,12 @@ tuned interactively; this document is the context to continue in Claude Code.
   download; `--accent` is the theme-adapted orange for small text/detail (`#ff9c3d` dark,
   `#a85800` light) and the focused-card border/glow ramp. `--on-brand` (`#1c1204`) is the
   ink on orange fills. Optional event-title line sits above the day header in `--brand`.
+- Background (dark): warm ground `#0f0d09` + `--stagefx` (a centre stage-light linear
+  gradient + a faint brand-warm radial glow) + a soft-light grain layer, all composited on
+  `body` via `background` + `background-blend-mode` (static — no per-frame cost; `#stage`
+  and the cards stay transparent over it). The empty space around the focused card reads as
+  a lit surface, not a void. Light mode keeps `--stagefx` transparent (two empty gradients
+  so the layer count matches) — just the warm ground `#eeebe2` + grain.
 
 ## 3. Source layout — DONE (was: de-duplicate the source)
 
@@ -155,7 +161,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v15**.
+  network-first and updates without a bump. Currently at **v16**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -194,7 +200,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v15, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v16, offline + network-first `schedule.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
