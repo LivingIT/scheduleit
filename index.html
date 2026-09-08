@@ -387,15 +387,18 @@
 
   // --- audio / haptics ---------------------------------------------------
   let ac=null,muted=false;
-  // The plain 540Hz triangle blip — louder the faster you move. Tried making it
-  // thin out and drop pitch at speed (a "riffle"); it just sounded dull. Keep it
-  // simple and consistent — the crispness is the cosy part.
-  function tick(str){
+  // Each detent plays a random note from the day's chord (triangle, short "plopp",
+  // louder the faster you move). Day → chord cycles C · G · D · Am, so each day
+  // has its own colour and a fast riffle shimmers that chord.
+  const CHORD={C:[523.25,659.25,783.99], G:[392,493.88,587.33], D:[587.33,739.99,880], Am:[440,523.25,659.25]};
+  const PROG=['C','G','D','Am'];
+  function detFreq(){ const c=CHORD[PROG[active%4]]; return c[(Math.random()*c.length)|0]; }
+  function tick(str,freq){
     if(navigator.vibrate){try{navigator.vibrate(9);}catch(e){}}
     if(muted)return;
     try{ if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();
       const o=ac.createOscillator(),g=ac.createGain();
-      o.type='triangle'; o.frequency.value=540;
+      o.type='triangle'; o.frequency.value=freq||540;
       g.gain.setValueAtTime(0.0001,ac.currentTime);
       g.gain.exponentialRampToValueAtTime(0.06*str,ac.currentTime+0.004);
       g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.05);
@@ -407,7 +410,7 @@
   // checkDet also runs inside settle, so a glide that crosses a slot line still clicks.
   function checkDet(){
     const r=Math.round(vpos[active]);
-    if(r!==lastDet){ tick(Math.min(1, Math.abs(vvel)*0.6 + 0.4)); lastDet=r; }
+    if(r!==lastDet){ tick(Math.min(1, Math.abs(vvel)*0.6 + 0.4), detFreq()); lastDet=r; }
   }
 
   // --- animation loop ----------------------------------------------------
@@ -433,7 +436,7 @@
       const diff=dayTarget-dayX; dvel+=diff*0.16; dvel*=0.62; dayX+=dvel;
       if(Math.abs(diff)<0.001&&Math.abs(dvel)<0.001){
         dayX=dayTarget; const nd=clampDay(Math.round(dayX));
-        if(nd!==active){ active=nd; lastDet=Math.round(vpos[active]); tick(0.7); } mode='idle';
+        if(nd!==active){ active=nd; lastDet=Math.round(vpos[active]); tick(0.7, CHORD[PROG[active%4]][0]); } mode='idle';
       }
     } else if(mode==='gonow'){
       const dd=TODAY-dayX; dvel+=dd*0.30; dvel*=0.62; dayX+=dvel;

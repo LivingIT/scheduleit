@@ -20,9 +20,11 @@ tuned interactively; this document is the context to continue in Claude Code.
 ## 2. Current state — what works
 
 - Vertical "ratt" gesture: drag to morph between slots, flick for momentum, detent tick
-  (audio + Android vibration) per slot, soft ("cloud") landing. The tick is a plain 540Hz
-  triangle blip, louder the faster you move — a speed-based "riffle" (thinning + pitch drop)
-  was tried and reverted, it just sounded dull.
+  (audio + Android vibration) per slot, soft ("cloud") landing. Each tick is a **random note
+  from the day's chord** — a short triangle "plopp", louder the faster you move. Day → chord
+  cycles `C · G · D · Am` (`PROG[active%4]`, `CHORD` freqs in `detFreq()`); a day change
+  plays that day's root. (Earlier: a plain 540Hz blip, then a speed-riffle that sounded
+  dull and was reverted; the chord version replaced it.)
 - Horizontal day switching: swipe LEFT = next (later) day; future days sit to the right.
   Axis-locked so vertical/horizontal never fight. Per-day vertical scroll position is
   remembered. Day transition uses a subtle scale+fade depth effect; the focused-card accent
@@ -145,10 +147,11 @@ Horizontal (days):
 "Now" button (`gonow`, both axes at once): horizontal `dvel += dd*0.30; dvel *= 0.62`,
 vertical `vvel += pd*0.5; vvel *= 0.6`.
 
-Feedback: detent = `navigator.vibrate(9)` + a 540Hz triangle blip, gain `0.06·str` where
-`str = min(1, |vvel|·0.6 + 0.4)` (louder faster, floor 0.4). Fires every slot crossed,
-in fling AND settle. Don't "improve" it with speed-based pitch/volume/thinning — that was
-tried (v17) and reverted for sounding dull. recompute 60s.
+Feedback: detent = `navigator.vibrate(9)` + a triangle blip at `detFreq()` (a random note
+from `CHORD[PROG[active%4]]` — days sound like C·G·D·Am), gain `0.06·str` where
+`str = min(1, |vvel|·0.6 + 0.4)` (louder faster, floor 0.4), 50ms decay. Fires every slot
+crossed, in fling AND settle. Speed-based pitch/volume/thinning was tried (v17) and
+reverted for sounding dull — don't. recompute 60s.
 
 ## 6. Decisions + rationale
 
@@ -175,7 +178,7 @@ tried (v17) and reverted for sounding dull. recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v20**.
+  network-first and updates without a bump. Currently at **v21**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -214,7 +217,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v20, offline + network-first `*.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v21, offline + network-first `*.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
