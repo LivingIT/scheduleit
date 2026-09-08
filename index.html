@@ -373,12 +373,15 @@
 
   // --- audio / haptics ---------------------------------------------------
   let ac=null,muted=false;
-  function tick(str,freq){
-    if(navigator.vibrate){try{navigator.vibrate(Math.max(3,Math.round(9*str)));}catch(e){}}
+  // The plain 540Hz triangle blip — louder the faster you move. Tried making it
+  // thin out and drop pitch at speed (a "riffle"); it just sounded dull. Keep it
+  // simple and consistent — the crispness is the cosy part.
+  function tick(str){
+    if(navigator.vibrate){try{navigator.vibrate(9);}catch(e){}}
     if(muted)return;
     try{ if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();
       const o=ac.createOscillator(),g=ac.createGain();
-      o.type='triangle'; o.frequency.value=freq||540;
+      o.type='triangle'; o.frequency.value=540;
       g.gain.setValueAtTime(0.0001,ac.currentTime);
       g.gain.exponentialRampToValueAtTime(0.06*str,ac.currentTime+0.004);
       g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.05);
@@ -387,17 +390,10 @@
   }
   document.getElementById('mute').onclick=function(){muted=!muted;
     this.textContent=muted?'🔇 tyst':'🔊 tick'; this.style.opacity=muted?0.5:1;};
-  // Detents: at speed, thin them out and drop volume + pitch so a hard flick reads
-  // as one low "brrr" and only the slow approach ticks crisply. checkDet also runs
-  // inside settle now, so a glide that crosses a slot line still clicks.
-  let detN=0;
+  // checkDet also runs inside settle, so a glide that crosses a slot line still clicks.
   function checkDet(){
     const r=Math.round(vpos[active]);
-    if(r===lastDet) return;
-    lastDet=r;
-    const sp=Math.abs(vvel), stride = sp>4.2 ? 3 : sp>2.3 ? 2 : 1;
-    if(stride>1 && (++detN % stride)) return;
-    tick(Math.max(0.28, Math.min(0.9, 0.92 - sp*0.13)), Math.max(300, 540 - sp*42));
+    if(r!==lastDet){ tick(Math.min(1, Math.abs(vvel)*0.6 + 0.4)); lastDet=r; }
   }
 
   // --- animation loop ----------------------------------------------------

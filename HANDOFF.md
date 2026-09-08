@@ -20,9 +20,9 @@ tuned interactively; this document is the context to continue in Claude Code.
 ## 2. Current state — what works
 
 - Vertical "ratt" gesture: drag to morph between slots, flick for momentum, detent tick
-  (audio + Android vibration) per slot, soft ("cloud") landing. Detents thin out and drop
-  in volume + pitch at speed, so a hard flick is one low "brrr" and only the slow approach
-  ticks crisply.
+  (audio + Android vibration) per slot, soft ("cloud") landing. The tick is a plain 540Hz
+  triangle blip, louder the faster you move — a speed-based "riffle" (thinning + pitch drop)
+  was tried and reverted, it just sounded dull.
 - Horizontal day switching: swipe LEFT = next (later) day; future days sit to the right.
   Axis-locked so vertical/horizontal never fight. Per-day vertical scroll position is
   remembered. Day transition uses a subtle scale+fade depth effect; the focused-card accent
@@ -136,9 +136,10 @@ Horizontal (days):
 "Now" button (`gonow`, both axes at once): horizontal `dvel += dd*0.30; dvel *= 0.62`,
 vertical `vvel += pd*0.5; vvel *= 0.6`.
 
-Feedback: detent = `navigator.vibrate(≈9·str)` + WebAudio triangle blip. At speed
-(`|vvel|`) it thins (`stride` 1→2→3 above ~2.3 / ~4.2), quietens (`str = 0.92 - sp*0.13`,
-floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
+Feedback: detent = `navigator.vibrate(9)` + a 540Hz triangle blip, gain `0.06·str` where
+`str = min(1, |vvel|·0.6 + 0.4)` (louder faster, floor 0.4). Fires every slot crossed,
+in fling AND settle. Don't "improve" it with speed-based pitch/volume/thinning — that was
+tried (v17) and reverted for sounding dull. recompute 60s.
 
 ## 6. Decisions + rationale
 
@@ -165,7 +166,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v17**.
+  network-first and updates without a bump. Currently at **v18**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -204,7 +205,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v17, offline + network-first `*.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v18, offline + network-first `*.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
