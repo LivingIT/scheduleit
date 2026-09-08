@@ -14,11 +14,11 @@
           "desc": "Full arbetsdag mot kund fram tills dess. Meddela Martin när du är på plats."
         },
         {
-          "time": "18:40",
-          "title": "Avresa mot Nice",
+          "time": "18:40–21:00",
+          "title": "Flyg Kastrup → Nice",
           "place": "Kastrup",
           "people": "",
-          "desc": "Flight D83646. Landar 21:00."
+          "desc": "Flight D83646. Landar 21:00 i Nice."
         },
         {
           "time": "21:00",
@@ -34,35 +34,35 @@
       "date": "2026-09-18",
       "slots": [
         {
-          "time": "07:30",
+          "time": "07:30–08:45",
           "title": "Frukost",
           "place": "",
           "people": "",
           "desc": "Dagen rapporteras som internkonferens i Kleer."
         },
         {
-          "time": "09:00",
+          "time": "09:00–12:00",
           "title": "Månadsmöte",
           "place": "",
           "people": "",
-          "desc": "Till 12:00."
+          "desc": ""
         },
         {
-          "time": "12:00",
+          "time": "12:00–13:00",
           "title": "Lunch",
           "place": "",
           "people": "",
           "desc": ""
         },
         {
-          "time": "13:00",
+          "time": "13:00–16:00",
           "title": "Konferens",
           "place": "",
           "people": "",
-          "desc": "Till 16:00."
+          "desc": ""
         },
         {
-          "time": "19:00",
+          "time": "19:00–21:00",
           "title": "Middag",
           "place": "",
           "people": "",
@@ -75,21 +75,21 @@
       "date": "2026-09-19",
       "slots": [
         {
-          "time": "07:30",
+          "time": "07:30–09:45",
           "title": "Frukost",
           "place": "",
           "people": "",
           "desc": "Efteråt: arbete mot kund, eller fri tid om timmarna är inarbetade (t.ex. Cannes eller Nice)."
         },
         {
-          "time": "13:00",
+          "time": "13:00–14:00",
           "title": "Lunch",
           "place": "",
           "people": "",
           "desc": ""
         },
         {
-          "time": "19:00",
+          "time": "19:00–21:00",
           "title": "Middag",
           "place": "",
           "people": "",
@@ -102,28 +102,28 @@
       "date": "2026-09-20",
       "slots": [
         {
-          "time": "07:30",
+          "time": "07:30–09:30",
           "title": "Frukost",
           "place": "",
           "people": "",
           "desc": "Teamaktivitetsdag — ingen rapportering i Kleer."
         },
         {
-          "time": "09:30",
+          "time": "09:30–12:00",
           "title": "Teamaktivitet",
           "place": "",
           "people": "",
-          "desc": "Till 12:00."
+          "desc": ""
         },
         {
-          "time": "13:00",
+          "time": "13:00–14:00",
           "title": "Lunch",
           "place": "",
           "people": "",
           "desc": ""
         },
         {
-          "time": "19:00",
+          "time": "19:00–21:00",
           "title": "Middag",
           "place": "",
           "people": "",
@@ -136,15 +136,15 @@
       "date": "2026-09-21",
       "slots": [
         {
-          "time": "07:30",
+          "time": "07:30–09:45",
           "title": "Frukost",
           "place": "",
           "people": "",
           "desc": "Hemresedag. Rapporteras som internkonferens i Kleer."
         },
         {
-          "time": "13:30",
-          "title": "Avresa från Nice",
+          "time": "13:30–15:45",
+          "title": "Flyg Nice → Kastrup",
           "place": "Nice",
           "people": "",
           "desc": "Flight D83641. Beräknad landning 15:45 på Kastrup."

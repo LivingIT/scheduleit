@@ -14,49 +14,49 @@
           "desc": ""
         },
         {
-          "time": "09:30",
+          "time": "09:30–10:15",
           "title": "Invigning & välkomsttal",
           "place": "Stora scenen",
           "people": "Elin Sandell",
           "desc": ""
         },
         {
-          "time": "10:15",
+          "time": "10:15–11:15",
           "title": "Framtidens laddinfrastruktur",
           "place": "Stora scenen",
           "people": "Marcus Lindqvist · Johanna Ek",
           "desc": "Hur snabbladdning, nätbalansering och bilens mjukvara måste samspela för att räckvidden ska hålla i verklig trafik. Följt av frågestund."
         },
         {
-          "time": "11:30",
+          "time": "11:30–12:30",
           "title": "Panelsamtal: mjukvara i bilen",
           "place": "Verkstaden",
           "people": "Henrik Dahl m.fl.",
           "desc": ""
         },
         {
-          "time": "12:30",
+          "time": "12:30–13:30",
           "title": "Lunch",
           "place": "Restaurangen",
           "people": "",
           "desc": ""
         },
         {
-          "time": "13:45",
+          "time": "13:45–15:00",
           "title": "Workshop: Bluetooth-testning",
           "place": "Rum 3",
           "people": "Marcus Lindqvist",
           "desc": "Praktisk genomgång av hur vi testar återanslutning, samtidiga enheter och profilväxling i infotainmentsystemet. Ta med egen laptop."
         },
         {
-          "time": "15:00",
+          "time": "15:00–15:30",
           "title": "Fikapaus",
           "place": "Foajén",
           "people": "",
           "desc": ""
         },
         {
-          "time": "15:30",
+          "time": "15:30–16:30",
           "title": "Keynote: nästa årtionde",
           "place": "Stora scenen",
           "people": "Elin Sandell",
@@ -76,21 +76,21 @@
       "date": "2026-09-02",
       "slots": [
         {
-          "time": "09:30",
+          "time": "09:30–10:15",
           "title": "Morgonyoga",
           "place": "Takterrassen",
           "people": "Sofia Åkerlund",
           "desc": ""
         },
         {
-          "time": "10:30",
+          "time": "10:30–11:45",
           "title": "Djupdykning: CarPlay-integration",
           "place": "Stora scenen",
           "people": "Marcus Lindqvist",
           "desc": ""
         },
         {
-          "time": "12:00",
+          "time": "12:00–13:00",
           "title": "Lunch & mingel",
           "place": "Restaurangen",
           "people": "",
@@ -124,14 +124,14 @@
           "desc": ""
         },
         {
-          "time": "11:00",
+          "time": "11:00–12:15",
           "title": "Framtidsspaning: mjukvarudefinierade bilar",
           "place": "Stora scenen",
           "people": "Johanna Ek",
           "desc": ""
         },
         {
-          "time": "12:30",
+          "time": "12:30–13:30",
           "title": "Avslutande lunch",
           "place": "Restaurangen",
           "people": "",

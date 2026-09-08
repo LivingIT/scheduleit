@@ -158,6 +158,7 @@
   <div id="imp">
     <h1>Redigera schema</h1>
     <p class="sub">Format: <code>tid | titel | plats | presentatörer | beskrivning</code> (allt utom tid/titel valfritt).
+      Tiden kan vara ett intervall: <code>13:00–16:00</code>.
       Ny dag med <code>#&nbsp;ÅÅÅÅ-MM-DD&nbsp;Namn</code> (datum styr vilken dag som är "idag").
       Eventtitel högst upp med <code>!&nbsp;Namn på eventet</code> (valfritt).
       <strong>Ladda ner</strong> ger dig <code>schedule.json</code> att lägga bredvid appen — det är så besökarna får schemat, utan den här vyn.</p>
@@ -181,13 +182,17 @@
   function addDays(base,n){ const d=new Date(base); d.setDate(d.getDate()+n); return d; }
   function slotStart(d,i){ if(!d._date) return null; const m=(d.slots[i].time||'').match(/(\d{1,2})[:.](\d{2})/); if(!m) return null; const x=new Date(d._date); x.setHours(+m[1],+m[2],0,0); return x; }
   function nowSlot(d,now){ let idx=0; for(let i=0;i<d.slots.length;i++){ const st=slotStart(d,i); if(st&&st<=now) idx=i; } return idx; }
+  // A slot's time can be a range: "13:00–16:00" (or with a hyphen). Show the end
+  // explicitly rather than guessing it from the next slot's start.
+  function fmtTime(t){ const p=(''+(t||'')).split(/\s*[–-]\s*/); return p[1] ? p[0].trim()+' – '+p[1].trim() : (p[0]||'').trim(); }
+  function slotEnd(d,i){ if(!d._date) return null; const m=(''+(d.slots[i].time||'')).match(/[–-]\s*(\d{1,2})[:.](\d{2})/); if(!m) return null; const x=new Date(d._date); x.setHours(+m[1],+m[2],0,0); return x; }
 
   // --- normalize any source into the internal model ----------------------
   function normalize(raw){
     return (raw||[]).map(d=>{
       const _date=parseDate(d.date);
       return { label:d.label || (_date?dateLabel(_date):'Schema'), date:d.date||'', _date,
-        isToday:false, _live:false, nowIndex:0,
+        isToday:false, _live:false, _past:false, nowIndex:0,
         slots:(d.slots||[]).map(s=>({time:s.time||'',title:s.title||'',place:s.place||'',
           people:s.people||'',desc:s.desc||'',trackId:s.trackId||0})) };
     }).filter(d=>d.slots.length);
@@ -195,11 +200,12 @@
   // Decide which day is "today" and which slot is "now", from real date+time.
   function recompute(){
     const now=new Date(), tk=isoDate(now);
-    days.forEach(d=>{ d.isToday=false; d._live=false; d.nowIndex=0; });
+    days.forEach(d=>{ d.isToday=false; d._live=false; d._past=false; d.nowIndex=0; });
     let idx=days.findIndex(d=>d.date===tk);
     if(idx>=0){
       const d=days[idx]; d.isToday=true; d.nowIndex=nowSlot(d,now);
       const s0=slotStart(d,0); d._live=!!s0 && now>=s0;
+      const sE=slotEnd(d,d.nowIndex); d._past=!!sE && now>sE;   // in a gap after this slot ended
     } else if(days.some(d=>d.date)){
       const up=days.findIndex(d=>d.date && d.date>=tk); idx = up>=0? up : days.length-1;
     } else idx=0;
@@ -242,19 +248,19 @@
     return normalize([
       { date:isoDate(t), slots:[
         {time:'09:00',title:'Dörrarna öppnar',place:'Foajén'},
-        {time:'09:30',title:'Invigning & välkomsttal',place:'Stora scenen',people:'Elin Sandell'},
-        {time:'10:15',title:'Framtidens laddinfrastruktur',place:'Stora scenen',people:'Marcus Lindqvist · Johanna Ek',desc:'Hur snabbladdning, nätbalansering och bilens mjukvara måste samspela för att räckvidden ska hålla i verklig trafik. Följt av frågestund.'},
-        {time:'11:30',title:'Panelsamtal: mjukvara i bilen',place:'Verkstaden',people:'Henrik Dahl m.fl.'},
-        {time:'12:30',title:'Lunch',place:'Restaurangen'},
-        {time:'13:45',title:'Workshop: Bluetooth-testning',place:'Rum 3',people:'Marcus Lindqvist',desc:'Praktisk genomgång av hur vi testar återanslutning, samtidiga enheter och profilväxling i infotainmentsystemet. Ta med egen laptop.'},
-        {time:'15:00',title:'Fikapaus',place:'Foajén'},
-        {time:'15:30',title:'Keynote: nästa årtionde',place:'Stora scenen',people:'Elin Sandell',desc:'En blick framåt mot vad mjukvarudefinierade fordon innebär för hur vi bygger, testar och uppdaterar bilar.'},
+        {time:'09:30–10:15',title:'Invigning & välkomsttal',place:'Stora scenen',people:'Elin Sandell'},
+        {time:'10:15–11:15',title:'Framtidens laddinfrastruktur',place:'Stora scenen',people:'Marcus Lindqvist · Johanna Ek',desc:'Hur snabbladdning, nätbalansering och bilens mjukvara måste samspela för att räckvidden ska hålla i verklig trafik. Följt av frågestund.'},
+        {time:'11:30–12:30',title:'Panelsamtal: mjukvara i bilen',place:'Verkstaden',people:'Henrik Dahl m.fl.'},
+        {time:'12:30–13:30',title:'Lunch',place:'Restaurangen'},
+        {time:'13:45–15:00',title:'Workshop: Bluetooth-testning',place:'Rum 3',people:'Marcus Lindqvist',desc:'Praktisk genomgång av hur vi testar återanslutning, samtidiga enheter och profilväxling i infotainmentsystemet. Ta med egen laptop.'},
+        {time:'15:00–15:30',title:'Fikapaus',place:'Foajén'},
+        {time:'15:30–16:30',title:'Keynote: nästa årtionde',place:'Stora scenen',people:'Elin Sandell',desc:'En blick framåt mot vad mjukvarudefinierade fordon innebär för hur vi bygger, testar och uppdaterar bilar.'},
         {time:'16:30',title:'Mingel & avslut',place:'Takterrassen'}
       ]},
       { date:isoDate(addDays(t,1)), slots:[
-        {time:'09:30',title:'Morgonyoga',place:'Takterrassen',people:'Sofia Åkerlund'},
-        {time:'10:30',title:'Djupdykning: CarPlay-integration',place:'Stora scenen',people:'Marcus Lindqvist'},
-        {time:'12:00',title:'Lunch & mingel',place:'Restaurangen'},
+        {time:'09:30–10:15',title:'Morgonyoga',place:'Takterrassen',people:'Sofia Åkerlund'},
+        {time:'10:30–11:45',title:'Djupdykning: CarPlay-integration',place:'Stora scenen',people:'Marcus Lindqvist'},
+        {time:'12:00–13:00',title:'Lunch & mingel',place:'Restaurangen'},
         {time:'13:15',title:'Hackathon startar',place:'Verkstaden'},
         {time:'16:00',title:'Demos & prisutdelning',place:'Stora scenen',people:'Elin Sandell'}
       ]},
@@ -306,7 +312,7 @@
       const dayEl=document.createElement('div'); dayEl.className='day';
       const cards=day.slots.map((s,i)=>{
         const el=document.createElement('div'); el.className='wrap';
-        el.innerHTML='<div class="card"><div><span class="time">'+(s.time||'')+'</span>'
+        el.innerHTML='<div class="card"><div><span class="time">'+fmtTime(s.time)+'</span>'
           +'<span class="badge">pågår nu</span></div>'
           +'<div class="title">'+(s.title||'')+'</div><div class="detail">'
           +(s.place?'<div class="row"><span class="dot"></span>'+s.place+'</div>':'')
@@ -355,7 +361,7 @@
       card.style.borderColor='color-mix(in srgb, var(--line-accent) '+Math.round(eb*100)+'%, var(--line))';
       card.style.borderWidth=(0.5+eb*1).toFixed(2)+'px';
       card.style.boxShadow='var(--shadow), 0 8px 24px rgba(var(--accent-rgb),'+(0.16*eb).toFixed(3)+')';
-      const b=cards[i].querySelector('.badge'); if(b){ const dd=days[di]; const isNow=dd.isToday&&dd._live&&i===dd.nowIndex; b.style.opacity=isNow?Math.max(0,(c-0.3)/0.7):0; }
+      const b=cards[i].querySelector('.badge'); if(b){ const dd=days[di]; const isNow=dd.isToday&&dd._live&&!dd._past&&i===dd.nowIndex; b.style.opacity=isNow?Math.max(0,(c-0.3)/0.7):0; }
     }
   }
   function render(){
@@ -557,9 +563,8 @@
   function openSheet(di, si){
     const day=days[di]; if(!day) return;
     si=Math.max(0,Math.min(day.slots.length-1, si)); const s=day.slots[si];
-    const end = si+1<day.slots.length ? (day.slots[si+1].time||'') : '';
     document.getElementById('sDay').textContent=(day.isToday?'Idag · ':'')+day.label;
-    document.getElementById('sTime').textContent=(s.time||'')+(s.time&&end?' – '+end:'');
+    document.getElementById('sTime').textContent=fmtTime(s.time);
     document.getElementById('sTitle').textContent=s.title||'';
     setRow('sPlaceRow','sPlace', s.place);
     setRow('sPeopleRow','sPeople', s.people);

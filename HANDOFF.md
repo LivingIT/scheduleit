@@ -28,9 +28,9 @@ tuned interactively; this document is the context to continue in Claude Code.
   remembered. Day transition uses a subtle scale+fade depth effect; the focused-card accent
   border/glow fades with day-centeredness so the peeking next day shows no stray edge.
 - "Just nu" button (accent-filled): springs home across BOTH axes (right day + right slot).
-- Tap a resting focused card → detail bottom-sheet. Always carries day label + time range
-  (start–next start) + title, plus place/people/description when present. Swipe the sheet
-  down (or tap scrim / "Stäng") to dismiss. Tap during momentum = stops it — iOS-scroll.
+- Tap a resting focused card → detail bottom-sheet. Carries day label + time (range if the
+  slot has one) + title, plus place/people/description when present. Swipe the sheet down
+  (or tap scrim / "Stäng") to dismiss. Tap during momentum = stops it — iOS-scroll.
 - Which cards are worth a tap: a slot with a `desc` shows a one-line `.more` preview of it
   in the card's detail area (below place/people), masked to fade at the right edge — reads
   as "tap to read the rest". Slots without a `desc` don't get the line, so its presence is
@@ -53,6 +53,11 @@ tuned interactively; this document is the context to continue in Claude Code.
   — no longer stick to the wrong axis.
 - Date-aware "now": each day has a date; app compares date + clock to the device time to
   pick today's day and the ongoing slot, refreshed every 60s. No manual "today" flag.
+- Slot times: a slot's `time` may be a range — `"13:00–16:00"` (hyphen or en-dash). The
+  card and sheet show the end explicitly via `fmtTime()`; the sheet no longer *guesses* the
+  end from the next slot's start (that misled — "13–19" when it ended 16). `slotStart` /
+  `slotEnd` regex out the two ends; if `now` is past the current slot's end (a gap before
+  the next), `_past` is set and the "pågår nu" badge hides.
 - Data pipeline: app fetches `schedule.json` at start with a **4s AbortController cap** (a
   hung venue-wifi request can't leave the screen blank — it falls back to the built-in demo
   with today-relative dates). **`?s=<name>` loads `<name>.json` instead** (`…/?s=opio` →
@@ -170,7 +175,7 @@ tried (v17) and reverted for sounding dull. recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v19**.
+  network-first and updates without a bump. Currently at **v20**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -209,7 +214,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v19, offline + network-first `*.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v20, offline + network-first `*.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
@@ -220,15 +225,16 @@ Flat repo root, deployed as-is via GitHub Pages:
   "days": [
     { "label": "fre 12 sep", "date": "2026-09-12",
       "slots": [
-        { "time": "09:00", "title": "…", "place": "…", "people": "…", "desc": "…" }
+        { "time": "13:00–16:00", "title": "…", "place": "…", "people": "…", "desc": "…" }
       ]
     }
   ]
 }
 ```
 `title` is optional — a small event-title line shown above the day header (in the brand
-orange); omit or `""` to hide it.
+orange); omit or `""` to hide it. `time` is a start (`"09:00"`) or a range
+(`"13:00–16:00"`); only `time` and `title` are required per slot.
 
 Text authoring format: optional event title `! Event name` (anywhere, first wins); day
 header `# YYYY-MM-DD Label`; slot line `time | title | place | people | description`
-(all but time/title optional).
+(all but time/title optional; `time` may be `13:00–16:00`).
