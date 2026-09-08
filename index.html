@@ -68,6 +68,12 @@
   .detail{overflow:hidden; max-height:0; opacity:0;}
   .row{font-size:14px; color:var(--txt2); margin-top:8px; display:flex; gap:7px; align-items:center;}
   .dot{width:5px; height:5px; border-radius:50%; background:var(--txt2); flex:none;}
+  /* one-line taste of the description — only slots that have one get this, and it
+     fades out at the right edge so it reads as "tap to read the rest" */
+  .more{font-size:13px; line-height:1.5; color:var(--txt2); margin-top:10px;
+    white-space:nowrap; overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,#000 68%,transparent 97%);
+            mask-image:linear-gradient(90deg,#000 68%,transparent 97%);}
   #nowBtn{position:fixed; bottom:calc(24px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
     background:var(--brand); color:var(--on-brand); border:1px solid var(--brand); border-radius:24px;
     padding:11px 22px; font-size:14px; font-weight:600; opacity:0; transition:opacity .2s; z-index:300;
@@ -305,7 +311,9 @@
           +'<div class="title">'+(s.title||'')+'</div><div class="detail">'
           +(s.place?'<div class="row"><span class="dot"></span>'+s.place+'</div>':'')
           +(s.people?'<div class="row"><span class="dot"></span>'+s.people+'</div>':'')
+          +(s.desc?'<div class="more"></div>':'')
           +'</div></div>';
+        if(s.desc) el.querySelector('.more').textContent=s.desc;
         dayEl.appendChild(el); return el;
       });
       stage.appendChild(dayEl); cardsByDay.push({dayEl,cards});
@@ -342,7 +350,7 @@
       cards[i].style.opacity=Math.max(0,1-ad*0.5).toFixed(3);
       cards[i].style.zIndex=String(100-Math.round(ad*10));
       const det=cards[i].querySelector('.detail');
-      det.style.maxHeight=(c*110)+'px'; det.style.opacity=c.toFixed(3);
+      det.style.maxHeight=(c*145)+'px'; det.style.opacity=c.toFixed(3);
       const card=cards[i].querySelector('.card');
       card.style.borderColor='color-mix(in srgb, var(--line-accent) '+Math.round(eb*100)+'%, var(--line))';
       card.style.borderWidth=(0.5+eb*1).toFixed(2)+'px';

@@ -31,6 +31,10 @@ tuned interactively; this document is the context to continue in Claude Code.
 - Tap a resting focused card → detail bottom-sheet. Always carries day label + time range
   (start–next start) + title, plus place/people/description when present. Swipe the sheet
   down (or tap scrim / "Stäng") to dismiss. Tap during momentum = stops it — iOS-scroll.
+- Which cards are worth a tap: a slot with a `desc` shows a one-line `.more` preview of it
+  in the card's detail area (below place/people), masked to fade at the right edge — reads
+  as "tap to read the rest". Slots without a `desc` don't get the line, so its presence is
+  the indicator. (`detail maxHeight` is `c*145` to fit place + people + the preview.)
 - Gesture discoverability (first-time testers missed it — the *side* swipe most of all):
   the day header is rendered `‹ label ›`, chevrons in `--txt2`, the dead-end side dimmed —
   a permanent "days are navigable" affordance and position indicator. Plus a bobbing
@@ -118,7 +122,7 @@ Vertical ("ratt"):
   `checkDet()` runs each settle frame too, so a glide across a slot line still clicks.
 - card morph (`c = 1-ad`; `e = c²` peaked focus; `eb = e·dayCenteredness`):
   `scale = max(0.56, 1 - ad*0.2)`, `opacity = max(0, 1 - ad*0.5)`, detail `maxHeight =
-  c*110px`; border `color-mix(line-accent eb%, line)` width `0.5+eb px`; accent glow
+  c*145px`; border `color-mix(line-accent eb%, line)` width `0.5+eb px`; accent glow
   `rgba(--accent-rgb, 0.16·eb)`. `eb` (not `e`) gates the accent so the peeking next day
   shows no orange edge. **Font size is fixed** (title 22, time 17) and cards are centred
   with CSS `translateY(-50%)` — never read `offsetHeight` per frame and never animate
@@ -166,7 +170,7 @@ tried (v17) and reverted for sounding dull. recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v18**.
+  network-first and updates without a bump. Currently at **v19**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -205,7 +209,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v18, offline + network-first `*.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v19, offline + network-first `*.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
