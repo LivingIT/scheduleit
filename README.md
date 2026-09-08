@@ -26,6 +26,12 @@ dag som är idag och vilken punkt som pågår. Ligger inget datum på idag öppn
 dag utan "pågår nu"-märke.
 (Redigera-vyn är ett författarverktyg och är gömd för besökare bakom `#edit`.)
 
+## Flera scheman på samma deploy
+Lägg fler JSON-filer bredvid appen och peka ut dem med `?s=`:
+`…/scheduleit/?s=opio` läser `opio.json`, `…/?s=host` läser `host.json`, osv.
+Utan parameter används `schedule.json`. Filens egen `title` styr rubriken.
+Länka till respektive schema — t.ex. en QR-kod per event.
+
 
 ## Alternativ: editor.html (formulär i stället för text)
 `editor.html` är en fristående författarsida med inmatningsfält per punkt.

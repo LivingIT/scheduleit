@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "title": "IT-resa till Frankrike 2026",
+  "days": [
+    {
+      "label": "tor 17 sep",
+      "date": "2026-09-17",
+      "slots": [
+        {
+          "time": "16:40",
+          "title": "Samling på Kastrup",
+          "place": "Kastrup",
+          "people": "",
+          "desc": "Full arbetsdag mot kund fram tills dess. Meddela Martin när du är på plats."
+        },
+        {
+          "time": "18:40",
+          "title": "Avresa mot Nice",
+          "place": "Kastrup",
+          "people": "",
+          "desc": "Flight D83646. Landar 21:00."
+        },
+        {
+          "time": "21:00",
+          "title": "Landning i Nice",
+          "place": "Nice",
+          "people": "",
+          "desc": "Vidare till Club Med Opio en Provence."
+        }
+      ]
+    },
+    {
+      "label": "fre 18 sep",
+      "date": "2026-09-18",
+      "slots": [
+        {
+          "time": "07:30",
+          "title": "Frukost",
+          "place": "",
+          "people": "",
+          "desc": "Dagen rapporteras som internkonferens i Kleer."
+        },
+        {
+          "time": "09:00",
+          "title": "Månadsmöte",
+          "place": "",
+          "people": "",
+          "desc": "Till 12:00."
+        },
+        {
+          "time": "12:00",
+          "title": "Lunch",
+          "place": "",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "13:00",
+          "title": "Konferens",
+          "place": "",
+          "people": "",
+          "desc": "Till 16:00."
+        },
+        {
+          "time": "19:00",
+          "title": "Middag",
+          "place": "",
+          "people": "",
+          "desc": ""
+        }
+      ]
+    },
+    {
+      "label": "lör 19 sep",
+      "date": "2026-09-19",
+      "slots": [
+        {
+          "time": "07:30",
+          "title": "Frukost",
+          "place": "",
+          "people": "",
+          "desc": "Efteråt: arbete mot kund, eller fri tid om timmarna är inarbetade (t.ex. Cannes eller Nice)."
+        },
+        {
+          "time": "13:00",
+          "title": "Lunch",
+          "place": "",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "19:00",
+          "title": "Middag",
+          "place": "",
+          "people": "",
+          "desc": "Gemensam på hotellet — var tillbaka i tid."
+        }
+      ]
+    },
+    {
+      "label": "sön 20 sep",
+      "date": "2026-09-20",
+      "slots": [
+        {
+          "time": "07:30",
+          "title": "Frukost",
+          "place": "",
+          "people": "",
+          "desc": "Teamaktivitetsdag — ingen rapportering i Kleer."
+        },
+        {
+          "time": "09:30",
+          "title": "Teamaktivitet",
+          "place": "",
+          "people": "",
+          "desc": "Till 12:00."
+        },
+        {
+          "time": "13:00",
+          "title": "Lunch",
+          "place": "",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "19:00",
+          "title": "Middag",
+          "place": "",
+          "people": "",
+          "desc": ""
+        }
+      ]
+    },
+    {
+      "label": "mån 21 sep",
+      "date": "2026-09-21",
+      "slots": [
+        {
+          "time": "07:30",
+          "title": "Frukost",
+          "place": "",
+          "people": "",
+          "desc": "Hemresedag. Rapporteras som internkonferens i Kleer."
+        },
+        {
+          "time": "13:30",
+          "title": "Avresa från Nice",
+          "place": "Nice",
+          "people": "",
+          "desc": "Flight D83641. Beräknad landning 15:45 på Kastrup."
+        },
+        {
+          "time": "15:45",
+          "title": "Landning på Kastrup",
+          "place": "Kastrup",
+          "people": "",
+          "desc": ""
+        }
+      ]
+    }
+  ]
+}

@@ -51,9 +51,13 @@ tuned interactively; this document is the context to continue in Claude Code.
   pick today's day and the ongoing slot, refreshed every 60s. No manual "today" flag.
 - Data pipeline: app fetches `schedule.json` at start with a **4s AbortController cap** (a
   hung venue-wifi request can't leave the screen blank — it falls back to the built-in demo
-  with today-relative dates). Author tools: in-app text tool behind `#edit` in the URL
-  (visitors never see the button) + a standalone form editor; both export `schedule.json`.
-  Authoring is fully separated from the visitor view; no backend.
+  with today-relative dates). **`?s=<name>` loads `<name>.json` instead** (`…/?s=opio` →
+  `opio.json`; sanitised to `[\w-]{1,60}`, same folder) so one deploy can host several
+  schedules — the file's own `title` drives the header. `SRC` holds the active filename;
+  the editor downloads back to it. SW is network-first for **any** `*.json`. Author tools:
+  in-app text tool behind `#edit` in the URL (visitors never see the button) + a standalone
+  form editor; both export the schedule file. Authoring is separated from the visitor view;
+  no backend.
 - Packaged as an installable, offline PWA (manifest + service worker + icons).
 - Brand: Living IT orange `#ff8705` (`--brand`, fixed) for fills — badge, "Just nu",
   download; `--accent` is the theme-adapted orange for small text/detail (`#ff9c3d` dark,
@@ -161,7 +165,7 @@ floor 0.28) and drops pitch (`540 - sp*42`, floor 300 Hz). recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v16**.
+  network-first and updates without a bump. Currently at **v17**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -200,7 +204,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v16, offline + network-first `schedule.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v17, offline + network-first `*.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)

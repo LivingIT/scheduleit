@@ -263,6 +263,7 @@
   // --- mutable app data & DOM -------------------------------------------
   let days=fallbackDays();
   let EVT='Living IT Höstevent 2026';   // optional event title; '' hides the top line
+  let SRC='schedule.json';              // which file this session is showing (see ?s= in boot)
   let SP=150; let maxDay, TODAY, cardsByDay=[];
   function computeLayout(){ SP=(window.innerWidth<600)?150:Math.max(160,Math.min(230,Math.round(window.innerHeight*0.20))); }
   const stage=document.getElementById('stage');
@@ -645,7 +646,7 @@
     const parsed=parse(impText.value);
     if(!parsed){ impErr.textContent='Hittade inga punkter. Kontrollera formatet.'; return; }
     days=parsed; recompute(); build(); resetState(); render(); renderEvt();
-    download('schedule.json', toJSON());
+    download(SRC, toJSON());
     impErr.textContent='';
   };
 
@@ -653,9 +654,14 @@
   window.addEventListener('resize',()=>{ W=window.innerWidth; computeLayout(); render(); });
   (async function boot(){
     let data=null;
+    // ?s=namn picks a different file (…/?s=opio → opio.json) so one deploy can
+    // host several schedules. Sanitised to a plain filename in this folder.
+    try{ const q=new URLSearchParams(location.search).get('s');
+      if(q && /^[\w-]{1,60}$/.test(q.replace(/\.json$/,''))) SRC=q.replace(/\.json$/,'')+'.json';
+    }catch(e){}
     try{ // 4s cap so a hung venue-wifi request can't leave the app blank
       const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),4000);
-      const r=await fetch('./schedule.json',{cache:'no-store',signal:ctl.signal}); clearTimeout(to);
+      const r=await fetch('./'+SRC,{cache:'no-store',signal:ctl.signal}); clearTimeout(to);
       if(r.ok) data=fromJSON(await r.json());
     }catch(e){}
     if(data) days=data;                 // otherwise keep built-in demo fallback
