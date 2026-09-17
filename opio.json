@@ -34,18 +34,39 @@
       "date": "2026-09-18",
       "slots": [
         {
-          "time": "07:30–08:45",
+          "time": "07:30–09:00",
           "title": "Frukost",
           "place": "",
           "people": "",
           "desc": "Dagen rapporteras som internkonferens i Kleer."
         },
         {
-          "time": "09:00–12:00",
-          "title": "Månadsmöte",
-          "place": "",
+          "time": "09:00–09:15",
+          "title": "Konferensen inleds",
+          "place": "Konferensrum Antibes",
           "people": "",
           "desc": ""
+        },
+        {
+          "time": "09:15–10:30",
+          "title": "Personliga presentationer",
+          "place": "Konferensrum Antibes",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "10:30–11:00",
+          "title": "Fikapaus",
+          "place": "Konferensrum Antibes",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "11:00–12:00",
+          "title": "Kundcase: agenter",
+          "place": "Konferensrum Antibes",
+          "people": "",
+          "desc": "Presentation av två kundcase där vi arbetar med agenter på olika sätt."
         },
         {
           "time": "12:00–13:00",
@@ -55,8 +76,36 @@
           "desc": ""
         },
         {
-          "time": "13:00–16:00",
-          "title": "Konferens",
+          "time": "13:00–14:15",
+          "title": "Månadsmöte",
+          "place": "Konferensrum Antibes",
+          "people": "",
+          "desc": "Konferensen fortsätter."
+        },
+        {
+          "time": "14:15–14:30",
+          "title": "\"Vem kan vad och hur mycket?\"",
+          "place": "Konferensrum Antibes",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "14:30–15:00",
+          "title": "Fika",
+          "place": "Konferensrum Antibes",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "15:00–16:00",
+          "title": "Vägen framåt",
+          "place": "Konferensrum Antibes",
+          "people": "",
+          "desc": ""
+        },
+        {
+          "time": "16:00–19:00",
+          "title": "Fri hopp och lek",
           "place": "",
           "people": "",
           "desc": ""
