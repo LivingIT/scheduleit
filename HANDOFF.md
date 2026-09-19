@@ -60,15 +60,21 @@ tuned interactively; this document is the context to continue in Claude Code.
   end from the next slot's start (that misled — "13–19" when it ended 16). `slotStart` /
   `slotEnd` regex out the two ends; if `now` is past the current slot's end (a gap before
   the next), `_past` is set and the "pågår nu" badge hides.
-- Data pipeline: app fetches `schedule.json` at start with a **4s AbortController cap** (a
-  hung venue-wifi request can't leave the screen blank — it falls back to the built-in demo
-  with today-relative dates). **`?s=<name>` loads `<name>.json` instead** (`…/?s=opio` →
-  `opio.json`; sanitised to `[\w-]{1,60}`, same folder) so one deploy can host several
-  schedules — the file's own `title` drives the header. `SRC` holds the active filename;
-  the editor downloads back to it. SW is network-first for **any** `*.json`. Author tools:
-  in-app text tool behind `#edit` in the URL (visitors never see the button) + a standalone
-  form editor; both export the schedule file. Authoring is separated from the visitor view;
-  no backend.
+- Data pipeline: `?s=<name>` loads `<name>.json` (default `schedule.json`); the name is
+  lower-cased (phone keyboards capitalise — `?s=Opio` 404'd on case-sensitive Pages) and
+  sanitised to `[\w-]{1,60}`. Fetch: 12s cap + one retry, "Hämtar schemat…" after 500ms.
+  On failure it uses the last good copy in `localStorage` (`sit_c_<file>`, title gets
+  "· sparad kopia") and otherwise shows an error + "Försök igen" — it **never falls back to
+  the fictional demo** on http(s) (that demo is only for `file://` dev; showing it for a
+  real event was the "I got the default schedule" bug). 404 → "Hittade inte <file>".
+  `SRC` holds the active filename; the editor downloads back to it. SW is network-first
+  for any `*.json`, caches only `ok` responses and falls back to the cached copy on 5xx.
+  **Installed app / iPhone:** the manifest `start_url` is `./`, so an icon added from
+  `?s=opio` reopened the default. Fix: if `manifest-<name>.webmanifest` exists (HEAD check)
+  the manifest link is swapped to it — `manifest-opio.webmanifest` has `start_url:"./?s=opio"`.
+  Add one per schedule. In standalone mode with no `?s=`, the last-used name (`sit_src`) is
+  reused (browsers keep the URL authoritative, so a new default isn't shadowed). Author
+  tools: in-app text tool behind `#edit`; both editors export the schedule file. No backend.
 - Packaged as an installable, offline PWA (manifest + service worker + icons).
 - Brand: Living IT orange `#ff8705` (`--brand`, fixed) for fills — badge, "Just nu",
   download; `--accent` is the theme-adapted orange for small text/detail (`#ff9c3d` dark,
@@ -178,7 +184,7 @@ reverted for sounding dull — don't. recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v21**.
+  network-first and updates without a bump. Currently at **v22**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -217,7 +223,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v21, offline + network-first `*.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v22, offline + network-first `*.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)

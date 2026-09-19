@@ -31,7 +31,12 @@ dag utan "pågår nu"-märke.
 Lägg fler JSON-filer bredvid appen och peka ut dem med `?s=`:
 `…/scheduleit/?s=opio` läser `opio.json`, `…/?s=host` läser `host.json`, osv.
 Utan parameter används `schedule.json`. Filens egen `title` styr rubriken.
-Länka till respektive schema — t.ex. en QR-kod per event.
+Länka till respektive schema — t.ex. en QR-kod per event. Versaler spelar ingen roll.
+Om appen inte kan hämta schemat visas en sparad kopia (om den finns) — annars ett felmeddelande, aldrig exempeldatan.
+
+**Lägga till på hemskärmen (iPhone/Android):** ikonen öppnar `start_url` i manifestet. För att den ska öppna *rätt* schema
+finns en manifestfil per schema: `manifest-opio.webmanifest` (`start_url: "./?s=opio"`). Skapa en likadan
+`manifest-<namn>.webmanifest` för varje nytt schema som ska kunna installeras.
 
 
 ## Alternativ: editor.html (formulär i stället för text)

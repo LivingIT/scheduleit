@@ -1,0 +1,17 @@
+{
+  "name": "IT-resa till Frankrike 2026",
+  "short_name": "Opio",
+  "description": "Schema för IT-resan till Opio, 17–21 september 2026.",
+  "id": "./?s=opio",
+  "start_url": "./?s=opio",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0d09",
+  "theme_color": "#0f0d09",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
