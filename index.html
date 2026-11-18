@@ -542,6 +542,9 @@
   });
   function end(){
     if(!drag)return; drag=false;
+    // A still thumb sends no pointermoves, so the last velocity survived a pause:
+    // drag, hold still, let go → it flew off. Held still >100ms = "put it here".
+    if(performance.now()-lT>100){ vvel=0; dvel=0; }
     if(axis==='v'){
       markLearned('v');
       const mx=days[active].slots.length-1;
