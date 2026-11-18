@@ -1,4 +1,4 @@
-const CACHE = 'scheduleit-v22';
+const CACHE = 'scheduleit-v23';
 const ASSETS = ['./','./index.html','./manifest.webmanifest','./schedule.json',
   './icon-192.png','./icon-512.png','./icon-512-maskable.png'];
 self.addEventListener('install', e => {

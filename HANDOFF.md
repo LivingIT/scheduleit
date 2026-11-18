@@ -129,6 +129,9 @@ Vertical ("ratt"):
 - release routing (`end()`): `|vvel| > 0.8` (per-sec) → `fling` (momentum); otherwise skip
   the fling and go straight to `settle`, target `round(vpos + vvel*0.28)`, seeded
   `vvel *= dt` — so a slow drag lands crisply instead of creeping through a low-speed fling.
+- stale velocity on release: if the last pointermove was >100ms before `pointerup`
+  (thumb held still), `vvel`/`dvel` are zeroed — otherwise drag-hold-release flung with
+  the velocity from before the pause.
 - fling → settle handoff: when `|vvel| < 0.35`, hand to the spring seeded with `vvel *= dt`
   (per-sec → per-frame; see §7) so a flick doesn't crawl the last half-second.
 - settle ("cloud landing", overdamped, no overshoot): `vvel += diff*0.20; vvel *= 0.60`.
@@ -184,7 +187,7 @@ reverted for sounding dull — don't. recompute 60s.
 - **SPX must match** between render and drag (§5).
 - **Bump the service-worker cache version** (`scheduleit-vN` in `sw.js`) on ANY change to
   `index.html`/`sw.js`, or clients keep serving the cached old app. `schedule.json` is
-  network-first and updates without a bump. Currently at **v22**.
+  network-first and updates without a bump. Currently at **v23**.
 - **`file://` blocks fetch**: opened as a local file, the app falls back to the built-in
   demo (never loads `schedule.json`). Test the data path on the deployed URL.
 
@@ -223,7 +226,7 @@ Flat repo root, deployed as-is via GitHub Pages:
 - `index.html` — the app (single source of truth; PWA head + SW registration baked in).
 - `schedule.json` — the schedule the app shows; swap this file to update content.
 - `editor.html` — standalone form authoring tool.
-- `manifest.webmanifest`, `sw.js` (v22, offline + network-first `*.json`), `icon-*.png`.
+- `manifest.webmanifest`, `sw.js` (v23, offline + network-first `*.json`), `icon-*.png`.
 - `README.md`, `HANDOFF.md`.
 
 ### schedule.json shape (the contract)
